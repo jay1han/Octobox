@@ -1,0 +1,16 @@
+[Unit]
+Description=Octobox daemon
+After=network-online.target
+Wants=octoprint.service
+
+[Service]
+Environment="LC_ALL=C.UTF-8"
+Environment="LANG=C.UTF-8"
+Type=exec
+User=octoprint
+ExecStart=/usr/share/octobox/octobox.py
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=multi-user.target
