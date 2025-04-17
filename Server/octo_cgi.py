@@ -17,8 +17,6 @@ elif action == 'reboot':
     socketWrite('REBOOT')
 elif action == 'flash':
     socketWrite('FLASH')
-elif action == 'light':
-    socketWrite('LIGHT')
 elif action == 'camera':
     socketWrite('CAMERA')
 

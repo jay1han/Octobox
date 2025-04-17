@@ -8,7 +8,6 @@ from enum import Enum
 
 from octo_print import Octoprint
 from octo_socket import Socket
-from octo_sound import Sound
 from octo_periph import Peripheral
 from octo_cam import Camera
 from octo_disp import Display
@@ -29,7 +28,6 @@ class State(Enum):
     PRINTING = 3
     COOLING  = 4
     COLD     = 5
-    CLOSED   = -1
             
 class Octobox:
     def __init__(self):
@@ -38,7 +36,6 @@ class Octobox:
         self.elapsed = 0
 
         self.p = Peripheral()
-        self.s = Sound()
         self.c = Camera(self.p)
         self.o = Octoprint()
         self.d = Display()
@@ -223,8 +220,6 @@ class Octobox:
             self.processCOOLING(state, command, event)
         elif self.state == State.COLD:
             self.processCOLD(state, command, event)
-        elif self.state == State.CLOSED:
-            self.processCLOSED(state, command, event)
 
         tempExt, tempBed = self.o.getTemps()
         tempCpu = readCpuTemp()
