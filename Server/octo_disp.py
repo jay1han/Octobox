@@ -1,5 +1,8 @@
+import re
+import subprocess
 from time import sleep
 import json, os
+from datetime import datetime, timedelta
 
 _JSON_FILE = "/var/www/html/json"
 
@@ -26,7 +29,7 @@ class Display:
         self.clearInfo()
         self.setState('Printer')
 
-    def setupIP():
+    def setupIP(self):
         list_if = subprocess.run(['/usr/bin/ip', 'addr'], capture_output=True, text=True).stdout
         match = re.search('inet 192\.168\.([.0-9]+)', list_if, flags=re.MULTILINE)
         if match is not None:

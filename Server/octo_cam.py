@@ -1,3 +1,4 @@
+import signal
 import subprocess, os, re
 from octo_periph import Peripheral
 

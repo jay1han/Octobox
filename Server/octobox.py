@@ -15,10 +15,6 @@ from octo_disp import Display
 def readCpuTemp():
     with open('/sys/class/thermal/thermal_zone0/temp', 'r') as temp:
         cpuTemp = int(temp.read().strip()) / 1000.0
-    if  cpuTemp > highTemp:
-        setFan(True)
-    elif cpuTemp < lowTemp:
-        setFan(False)
     return cpuTemp
 
 class State(Enum):

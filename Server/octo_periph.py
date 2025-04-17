@@ -14,7 +14,7 @@ class Peripheral:
         self._fan = 0
         self._fanGpio = GPIO("/dev/gpiochip0", _GPIO_FAN, "out")
         self._relay = 0
-        self._relayGpio = GPIO("/dev/gpiochip0", _GPIO_RELAY, "out")
+        self._relayGpio = GPIO("/dev/gpiochip0", _GPIO_POWER, "out")
         
     def flash(self, state = None) -> int:
         if state is not None:

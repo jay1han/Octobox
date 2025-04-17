@@ -1,26 +1,64 @@
+
 from urllib.request import urlopen, Request
 import json
+from datetime import datetime
+
 APIKEY = "E8D71F8A9B9947C49A2740591E833101"
+
+class JobInfo:
+    def __init__(self,
+                 file='',
+                 remainingTime = 0,
+                 fileEstimate = 0,
+                 donePercent = 0):
+        self.filename = file
+        self.currentTime = datetime.now()
+        self.remainingTime = remainingTime
+        self.fileEstimate = fileEstimate
+        self.donePercent = donePercent
+
+def query(command):
+    try:
+        with urlopen(f'http://localhost:5000/api/{command}?apikey={APIKEY}') as jobapi:
+            return json.loads(jobapi.read())
+    except OSError:
+        return None
+
+def request(command, data):
+    r = Request(f'http://localhost:5000/api/{command}',
+                headers={
+                    'X-Api-Key': APIKEY,
+                    'Content-Type': 'application/json'
+                    }
+                )
+    try:
+        urlopen(r, bytes(data, 'ascii'))
+    except OSError:
+        pass
 
 class Octoprint:
     def __init__(self):
         pass
 
-    def query(self, command):
+    @staticmethod
+    def query(command):
         try:
             with urlopen(f'http://localhost:5000/api/{command}?apikey={APIKEY}') as jobapi:
                 return json.loads(jobapi.read())
         except OSError:
             return None
 
-    def request(self, command, data):
-        request = Request(f'http://localhost:5000/api/{command}',
-                          headers = { 'X-Api-Key': APIKEY,
-                                      'Content-Type': 'application/json'
-                                     }
-                          )
+    @staticmethod
+    def request(command, data):
+        r = Request(f'http://localhost:5000/api/{command}',
+                    headers =
+                        {
+                         'X-Api-Key': APIKEY,
+                        'Content-Type': 'application/json'
+                        }
+                    )
         try:
-            urlopen(request, bytes(data, 'ascii'))
+            urlopen(r, bytes(data, 'ascii'))
         except OSError:
             pass
 
@@ -61,7 +99,7 @@ class Octoprint:
     def getJobInfo(self):
         job = self.query('job')
         if job is None:
-            return NO_JOBINFO
+            return JobInfo()
         else:
             filename = job['job']['file']['name']
             if filename is None:
@@ -79,7 +117,7 @@ class Octoprint:
             if currentTime is None: currentTime = 0
             if remainingTime is None: remainingTime = 0
 
-            return filename, currentTime, remainingTime, fileEstimate, donePercent
+            return JobInfo(filename, currentTime, remainingTime, fileEstimate, donePercent)
 
     def __del__(self):
         pass

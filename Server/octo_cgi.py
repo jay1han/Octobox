@@ -1,23 +1,20 @@
 #!/usr/bin/python3
 from urllib.parse import parse_qs
 from os import environ
-from socket import socket
+from octo_socket import Socket
 
-SOCK_FILE  = '/usr/share/octobox/socket'
-
-def socketWrite(message):
-    pass
+socket = Socket()
 
 cgi_args = parse_qs(environ['QUERY_STRING'], keep_blank_values=True)
 action = cgi_args['action'][0]
 
 if action == 'power':
-    socketWrite('POWER')
+    socket.write('POWER')
 elif action == 'reboot':
-    socketWrite('REBOOT')
+    socket.write('REBOOT')
 elif action == 'flash':
-    socketWrite('FLASH')
+    socket.write('FLASH')
 elif action == 'camera':
-    socketWrite('CAMERA')
+    socket.write('CAMERA')
 
 print("Status: 205\n\n")
