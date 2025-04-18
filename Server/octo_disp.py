@@ -1,8 +1,9 @@
+import os
 import re
 import subprocess
-from time import sleep
-import json, os
 from datetime import datetime, timedelta
+
+from octo_print import JobInfo
 
 _JSON_FILE = "/var/www/html/json"
 
@@ -29,7 +30,8 @@ class Display:
         self.clearInfo()
         self.setState('Printer')
 
-    def setupIP(self):
+    @staticmethod
+    def setupIP():
         list_if = subprocess.run(['/usr/bin/ip', 'addr'], capture_output=True, text=True).stdout
         match = re.search('inet 192\.168\.([.0-9]+)', list_if, flags=re.MULTILINE)
         if match is not None:
@@ -38,10 +40,12 @@ class Display:
             my_ip = 'localhost'
         replaceText('/var/www/html/localIP', my_ip)
     
-    def setState(self, statusText):
+    @staticmethod
+    def setState(statusText):
         replaceText('/var/www/html/state', statusText)
 
-    def setTemps(self, temps):
+    @staticmethod
+    def setTemps(temps):
         tempExt, tempBed, tempCpu, tempCold = temps
         if tempExt == 0.0:
             temps = f'<tr><td>Extruder</td><td></td></tr><tr><td>Bed</td><td></td></tr>'
@@ -60,8 +64,8 @@ class Display:
         jobInfoText += '<tr><td>ETA</td><td></td></tr>'
         jobInfoText += f'<tr><td>Now</td><td>{self.lastNow}</td></tr>'
         
-    def setJobInfo(self, jobInfo):
-        filename, currentTime, remainingTime, fileEstimate, donePercent = jobInfo
+    def setJobInfo(self, jobInfo:JobInfo):
+        filename, currentTime, remainingTime, fileEstimate, donePercent = jobInfo.get()
         if filename != '':
             jobInfoText = f'<tr><td>File</td><td>{filename}</td></tr>'
         else:
@@ -76,27 +80,22 @@ class Display:
             if fileEstimate != 0:
                 eta2 = (datetime.now() - timedelta(seconds = currentTime) + timedelta(seconds = (fileEstimate + 60))).replace(second=0)
             if eta2 < eta1:
-                eta = eta2
-                eta2 = eta1
-                eta1 = eta
+                eta = eta1
+                eta1 = eta2
+                eta2 = eta
 
             etas = '(No estimate)'
             if eta1 > datetime.now():
                 etas = f'{eta1.strftime("%H:%M")} ~ {eta2.strftime("%H:%M")}'
-                eta1s = eta1.strftime("%H:%M")
             elif eta2 > datetime.now():
                 etas = eta2.strftime("%H:%M")
-            eta1s = "..:.."
-            if eta1 > datetime.now(): eta1s = eta1.strftime("%H:%M")
-            eta2s = "..:.."
-            if eta2 > datetime.now(): eta2s = eta2.strftime("%H:%M")
 
             jobInfoText += f'<tr><td>ETA</td><td>{etas}</td></tr>'
             self.lastNow = datetime.now().strftime("%H:%M")
             jobInfoText += f'<tr><td>Now</td><td>{self.lastNow}</td></tr>'
             
         else:
-            jobInfoText += f'<tr><td>Elapsed</td><td>{printTime0(self.jobInfo[1])}</td></tr>'
+            jobInfoText += f'<tr><td>Elapsed</td><td>{printTime0(currentTime)}</td></tr>'
             jobInfoText += f'<tr><td>ETA</td><td> </td></tr>'
             if self.jobInfo[0] != '':
                 jobInfoText += f'<tr><td>Ended</td><td>{self.lastNow}</td></tr>'
@@ -107,5 +106,5 @@ class Display:
         replaceText('/var/www/html/jobInfo', jobInfoText)
 
     def clearInfo(self):
-        self.setTemps([0.0, 0.0, 0.0, 0.0]);
-        self.setJobInfo(['', 0.0, 0.0, 0.0, 0.0]);
+        self.setTemps([0.0, 0.0, 0.0, 0.0])
+        self.setJobInfo(JobInfo('', 0.0, 0.0, 0.0, 0.0))

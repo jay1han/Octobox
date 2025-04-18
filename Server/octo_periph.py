@@ -1,7 +1,4 @@
-from threading import Thread
-from time import sleep
 from periphery import GPIO
-from datetime import datetime
 
 _GPIO_FLASH = 76
 _GPIO_FAN   = 260

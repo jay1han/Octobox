@@ -1,21 +1,24 @@
 
-from urllib.request import urlopen, Request
 import json
-from datetime import datetime
+from urllib.request import urlopen, Request
 
 APIKEY = "E8D71F8A9B9947C49A2740591E833101"
 
 class JobInfo:
     def __init__(self,
                  file='',
+                 currentTime = 0,
                  remainingTime = 0,
                  fileEstimate = 0,
                  donePercent = 0):
         self.filename = file
-        self.currentTime = datetime.now()
+        self.currentTime = currentTime
         self.remainingTime = remainingTime
         self.fileEstimate = fileEstimate
         self.donePercent = donePercent
+
+    def get(self):
+        return self.filename, self.currentTime, self.remainingTime, self.fileEstimate, self.donePercent
 
 def query(command):
     try:
@@ -68,15 +71,11 @@ class Octoprint:
     def connect(self):
         self.request('connection', '{ "command": "connect" }')
 
-    def cancel(self):
-        self.request('job', '{ "command": "cancel" }')
-
     def getState(self):
         # Offline
         # Operational
         # Printing
         # Cancelling
-
         job = self.query('job')
         if job is None:
             return 'Disconnected'
@@ -101,11 +100,11 @@ class Octoprint:
         if job is None:
             return JobInfo()
         else:
-            filename = job['job']['file']['name']
-            if filename is None:
-                filename = ''
+            file = job['job']['file']['name']
+            if file is None:
+                file = ''
             else:
-                filename =  filename.removesuffix('.gcode')
+                file =  file.removesuffix('.gcode')
 
             fileEstimate = job['job']['estimatedPrintTime']
             donePercent = job['progress']['completion']
@@ -114,10 +113,10 @@ class Octoprint:
 
             if fileEstimate is None: fileEstimate = 0
             if donePercent is None: donePercent = 0
-            if currentTime is None: currentTime = 0
             if remainingTime is None: remainingTime = 0
+            if currentTime is None: currentTime = 0
 
-            return JobInfo(filename, currentTime, remainingTime, fileEstimate, donePercent)
+            return JobInfo(file, currentTime, remainingTime, fileEstimate, donePercent)
 
     def __del__(self):
         pass
