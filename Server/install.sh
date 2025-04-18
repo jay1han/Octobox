@@ -34,9 +34,14 @@ chmod g+w /sys/class/pwm/pwmchip0/pwm2/duty_cycle
 chmod g+w /sys/class/pwm/pwmchip0/pwm2/period
 chmod g+w /sys/class/pwm/pwmchip0/pwm2/polarity
 
+cp -v files/autossh.env /etc/
 cp -v files/octobox.service /etc/systemd/system/
+cp -v files/autossh.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable octobox
 systemctl restart octobox
+systemctl enable autossh
+systemctl restart autossh
 systemctl status octobox
+systemctl status autossh
 
