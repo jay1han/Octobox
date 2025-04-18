@@ -9,7 +9,6 @@ from octo_periph import Peripheral
 from octo_print import Octoprint
 from octo_socket import Socket
 
-
 def readCpuTemp():
     with open('/sys/class/thermal/thermal_zone0/temp', 'r') as temp:
         cpuTemp = int(temp.read().strip()) / 1000.0
@@ -21,7 +20,7 @@ class State(Enum):
     PRINTING = 2
     COOLING  = 3
     COLD     = 4
-            
+
 class Octobox:
     def __init__(self):
         self.state = State.OFF

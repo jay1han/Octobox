@@ -25,7 +25,7 @@ def replaceText(filename, text):
 
 class Display:
     def __init__(self):
-        self.jobInfo = ['', 0.0, 0.0, 0.0, 0.0]
+        self.jobInfo = JobInfo()
         self.lastNow = ''
         self.clearInfo()
         self.setState('Printer')
@@ -69,7 +69,7 @@ class Display:
         if filename != '':
             jobInfoText = f'<tr><td>File</td><td>{filename}</td></tr>'
         else:
-            jobInfoText = f'<tr><td>File</td><td>{self.jobInfo[0]}</td></tr>'
+            jobInfoText = f'<tr><td>File</td><td>{self.jobInfo.filename}</td></tr>'
 
         if currentTime > 0:
             jobInfoText += f'<tr><td>Elapsed</td><td>{printTime0(currentTime)} ({donePercent:.1f}%)</td></tr>'
@@ -97,7 +97,7 @@ class Display:
         else:
             jobInfoText += f'<tr><td>Elapsed</td><td>{printTime0(currentTime)}</td></tr>'
             jobInfoText += f'<tr><td>ETA</td><td> </td></tr>'
-            if self.jobInfo[0] != '':
+            if self.jobInfo.filename != '':
                 jobInfoText += f'<tr><td>Ended</td><td>{self.lastNow}</td></tr>'
             else:
                 jobInfoText += f'<tr><td>Ended</td><td> </td></tr>'

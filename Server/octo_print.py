@@ -6,12 +6,12 @@ APIKEY = "E8D71F8A9B9947C49A2740591E833101"
 
 class JobInfo:
     def __init__(self,
-                 file='',
+                 filename='',
                  currentTime = 0,
                  remainingTime = 0,
                  fileEstimate = 0,
                  donePercent = 0):
-        self.filename = file
+        self.filename = filename
         self.currentTime = currentTime
         self.remainingTime = remainingTime
         self.fileEstimate = fileEstimate
