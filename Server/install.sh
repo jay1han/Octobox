@@ -45,3 +45,5 @@ systemctl restart autossh
 systemctl status octobox
 systemctl status autossh
 
+echo Please create a password file
+echo sudo htpasswd /etc/apache2/.htpasswd guest
