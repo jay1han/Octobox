@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-User=root
+User=jay
 EnvironmentFile=/etc/autossh.env
 ExecStart=/usr/bin/autossh $SSH_OPTIONS
 Restart=always
