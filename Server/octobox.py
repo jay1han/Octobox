@@ -71,6 +71,15 @@ class Octobox:
 
         print(f'{self.state} -> "{state}", "{event}"')
 
+        if state.startswith('Offline'):
+            self.state = State.OFF
+        elif state == 'Operational':
+            self.state = State.IDLE
+        elif state == 'Printing':
+            self.state = State.PRINTING
+        elif state == 'Cancelling':
+            self.state = State.COOLING
+
         if event == 'power':
             self.processPower()
         elif event == 'reboot':
@@ -96,3 +105,8 @@ class Octobox:
             self.d.setState('Cold')
 
 octobox = Octobox()
+
+while True:
+    octobox.loop()
+    sleep(1)
+

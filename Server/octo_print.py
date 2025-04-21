@@ -2,7 +2,7 @@
 import json
 from urllib.request import urlopen, Request
 
-APIKEY = "E8D71F8A9B9947C49A2740591E833101"
+APIKEY = ""
 
 class JobInfo:
     def __init__(self,
@@ -41,7 +41,8 @@ def request(command, data):
 
 class Octoprint:
     def __init__(self):
-        pass
+        with open('api.key') as key:
+            APIKEY = key.readline().strip()
 
     @staticmethod
     def query(command):
@@ -54,9 +55,8 @@ class Octoprint:
     @staticmethod
     def request(command, data):
         r = Request(f'http://localhost:5000/api/{command}',
-                    headers =
-                        {
-                         'X-Api-Key': APIKEY,
+                    headers = {
+                        'X-Api-Key': APIKEY,
                         'Content-Type': 'application/json'
                         }
                     )
