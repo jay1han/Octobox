@@ -21,14 +21,82 @@ You need to obtain an API key from Octoprint and store it in api.key in plain te
 | Cooling  | print job ended        | Octo has error         | Off       | switch everything OFF              |
 |          |                        | bed temp < 35C         | Off       | switch everything OFF              |
 
-### Camera
-
 ### Peripheral
 
-### Octo
+All methods take an optional argument to set the value,
+or return the current value if no argument is given.
+This module requires the SMBus module `python3-smbus`
+and to be given access. See `install.sh`.
+
+- `flash()` to switch the LED illuminating the camera.
+This is used exclusively by the Camera module
+
+- `fan()` to switch the cooling fan.
+
+- `relay()` to switch the printer.
+
+### Camera
+
+Upon initialization, kills current ustreamer if one is running.
+When active, ustreamer is available at the URL
+`http://192.168.0.8:8080`.
+
+- `start()` starts ustreamer.
+
+- `stop()` stops it.
+
+- `capture()` captures a still image into `/var/www/html/image.jpg`.
 
 ### Display
 
+This actually just updates the data files that are used by the HTML to display the page.
+
+- `localIP` contains the local IP address.
+
+- `state` contains a line of text taken from Octoprint.
+
+- `temps` contains HTML snippet showing temperatures.
+
+- `jobInfo` contains HTML snippet showing Job information (if any).
+
+### Octo
+
+This uses Octoprint's REST API to interact with it.
+
+- Queries : `job` or `printer` queries.
+
+- Requests : `connection` request to connect or disconnect the printer.
+
 ### Socket library
 
-### HTML/CGI
+The file `/usr/share/octobox/socket` is used to pass events.
+A user must first `lock()` it, then `read()` to or `write()` from it, 
+then `free()` it.
+
+### CGI
+
+The GPI module uses the Socket library to send events to the running Octobox process.
+
+- `power` to switch the printer.
+
+- `reboot` to reboot Octobox.
+
+## Document
+
+- `Orange.pptx` shows the cabling of the Opi Zero 2W.
+
+- `.FCStd` files for 3D models.
+
+    - `CapL` : the filament guide at the top of the Z pole
+    
+    - `Fan8` : casing for the cooling fan
+    
+    - `KPS-CameraHD 2w` : the camera bracket
+    
+    - `Octobox 2W simple` : frame for the Opi and the board
+    
+    - `Wirecover` : to isolate the terminals of the power supply
+    
+    - `Touch` : housing for the touch sensor (ambient light)
+
+    - `horiz2` : horizontal feeder for filament spool
