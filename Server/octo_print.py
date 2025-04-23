@@ -41,6 +41,7 @@ def request(command, data):
 
 class Octoprint:
     def __init__(self):
+        global APIKEY
         with open('api.key') as key:
             APIKEY = key.readline().strip()
 

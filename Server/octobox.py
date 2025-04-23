@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from time import sleep
 from datetime import datetime, timedelta
 from enum import Enum
 
@@ -60,7 +61,12 @@ class Octobox:
 
     def processReboot(self):
         self.o.disconnect()
-        self.allOff()
+        self.powerOff()
+        # TODO
+
+    def reboot(self):
+        # TODO
+        pass
     
     def loop(self):
         state = self.o.getState()
@@ -116,7 +122,7 @@ class Octobox:
                 self.state = State.Off
                 
         tempCold = 0.0
-        if self.state == State.COOLING:
+        if self.state == State.Cooling:
             tempCold = 35.0
         self.d.setTemps((tempExt, tempBed, tempCpu, tempCold))
         
