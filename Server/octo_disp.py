@@ -30,7 +30,6 @@ class Display:
         self.clearInfo()
         self.setState('Printer')
 
-    @staticmethod
     def setupIP():
         list_if = subprocess.run(['/usr/bin/ip', 'addr'], capture_output=True, text=True).stdout
         match = re.search('inet 192\.168\.([.0-9]+)', list_if, flags=re.MULTILINE)
@@ -40,11 +39,9 @@ class Display:
             my_ip = 'localhost'
         replaceText('/var/www/html/localIP', my_ip)
     
-    @staticmethod
     def setState(statusText):
         replaceText('/var/www/html/state', statusText)
 
-    @staticmethod
     def setTemps(temps):
         tempExt, tempBed, tempCpu, tempCold = temps
         if tempExt == 0.0:

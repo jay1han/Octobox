@@ -71,6 +71,9 @@ class Octoprint:
     def connect(self):
         self.request('connection', '{ "command": "connect" }')
 
+    def cancel(self):
+        self.request('job', '{ "command": "cancel" }')
+
     def getState(self):
         # Offline
         # Operational

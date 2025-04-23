@@ -15,15 +15,15 @@ def readCpuTemp():
     return cpuTemp
 
 class State(Enum):
-    OFF      = 0
-    IDLE     = 1
-    PRINTING = 2
-    COOLING  = 3
-    COLD     = 4
+    Off      = 0
+    On       = 1
+    Idle     = 2
+    Printing = 3
+    Cooling  = 4
 
 class Octobox:
     def __init__(self):
-        self.state = State.OFF
+        self.state = State.Off
         self.timeout = None
         self.elapsed = 0
 
@@ -49,60 +49,88 @@ class Octobox:
             return True
         else:
             return False
-    
-    def processPower(self):
-        if self.state == State.OFF:
-            self.p.relay(True)
-            self.d.setState('Printer On')
-            self.state = State.IDLE
-        elif self.state == State.IDLE:
-            self.o.disconnect()
-            self.d.setState('Printer Off')
-            self.p.relay(False)
-            self.state = State.OFF
 
-    def displayJob(self, jobInfo):
-        self.d.setJobInfo(jobInfo)
-        self.elapsed = jobInfo.currentTime
-                
+    def powerOff(self):
+        self.p.relay(False)
+        self.p.fan(False)
+        self.c.stop()
+
+    def powerOn(self):
+        self.p.relay(True)
+
+    def processReboot(self):
+        self.o.disconnect()
+        self.allOff()
+    
     def loop(self):
         state = self.o.getState()
         event = self.s.read()
+        tempExt, tempBed = self.o.getTemps()
+        tempCpu = readCpuTemp()
 
         print(f'{self.state} -> "{state}", "{event}"')
 
-        if state.startswith('Offline'):
-            self.state = State.OFF
-        elif state == 'Operational':
-            self.state = State.IDLE
-        elif state == 'Printing':
-            self.state = State.PRINTING
-        elif state == 'Cancelling':
-            self.state = State.COOLING
+        if self.state == State.Off:
+            if event == 'power':
+                self.powerOn()
+                self.o.connect()
+                self.setTimeout(10)
+                self.state = State.On
+            elif event == 'reboot':
+                self.powerOff()
+                self.reboot()
 
-        if event == 'power':
-            self.processPower()
-        elif event == 'reboot':
-            pass
+        elif self.state == State.On:
+            if state.startswith('Operational'):
+                self.setTimeout(0)
+                self.state = State.Idle
+            elif state.startswith('Error') or self.isTimedout():
+                self.o.disconnect()
+                self.powerOff()
+                self.state = State.Off
 
-        tempExt, tempBed = self.o.getTemps()
-        tempCpu = readCpuTemp()
+        elif self.state == State.Idle:
+            if state.startswith('Printing'):
+                self.c.start()
+                self.state = State.Printing
+            elif state.startswith('Error') or event == 'power':
+                self.o.disconnect()
+                self.powerOff()
+                self.state = State.Off
+            elif event == 'reboot':
+                self.powerOff()
+                self.reboot()
+
+        elif self.state == State.Printing:
+            if not state.startswith('Printing'):
+                self.p.fan(True)
+                self.state = State.Cooling
+            elif event == 'cancel':
+                self.o.cancel()
+                self.p.fan(True)
+                self.state = State.Cooling
+
+        elif self.state == State.Cooling:
+            if state.startswith('Error') or tempBed < 35.0:
+                self.powerOff()
+                self.state = State.Off
+                
         tempCold = 0.0
         if self.state == State.COOLING:
             tempCold = 35.0
         self.d.setTemps((tempExt, tempBed, tempCpu, tempCold))
         
-        if self.state == State.OFF:
+        if self.state == State.Off:
             self.d.setState('Printer Off')
-        elif self.state == State.IDLE:
+        elif self.state == State.Idle:
             self.d.setState(state)
-        elif self.state == State.PRINTING:
-            self.displayJob(self.o.getJobInfo())
-        elif self.state == State.COOLING:
+        elif self.state == State.Printing:
+            jobInfo = self.o.getJobInfo()
+            self.elapsed = jobInfo.currentTime
+            self.d.setJobInfo(jobInfo)
+        elif self.state == State.Cooling:
             self.d.setElapsed(self.elapsed)
             self.d.setState('Cooling')
-        elif self.state == State.COLD:
-            self.d.setState('Cold')
 
 octobox = Octobox()
 

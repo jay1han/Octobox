@@ -20,16 +20,8 @@
           document.getElementById("temps").innerHTML = tempsText;
           document.getElementById("jobInfo").innerHTML = jobInfoText;
 
-          let value = document.getElementById("webcam").src;
-          if (value.endsWith("jpg")) {
-              if (!stateText.startsWith("Printer") && !stateText.startsWith("Door")) {
-                  setupStream();
-              }
-          } else {
-              if (stateText.startsWith("Printer") || stateText.startsWith("Door")) {
-                  setupImage();
-              }
-          }
+          if (stateText.startsWith("Printing")) setupStream();
+          else setupImage();
       
           setTimeout(getUpdate, 1000);
       }
@@ -39,7 +31,7 @@
           let localIPText = await localIP.text();
           
           let port = window.location.port;
-          if (port == 8000 || port == 60080) {
+          if (port == 8000 || port == 50080) {
               document.getElementById("webcam").src = "http://jayhan.name:58088/?action=stream";
           } else {
               document.getElementById("webcam").src = `http://${localIPText}:8080/?action=stream`;
@@ -67,9 +59,10 @@
       <h1 id="state">Printer</h1>
       
       <p>
-        <form action="/bin/octocgi.py">
+        <form action="/bin/octo_cgi.py">
           <button type="submit" name="action" value="power">Power</button>
           <button type="submit" name="action" value="reboot">Reboot</button>
+          <button type="submit" name="action" value="cancel">Cancel</button>
         </form>
       </p>
       

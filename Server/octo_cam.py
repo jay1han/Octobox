@@ -23,12 +23,13 @@ class Camera:
                 usb_device = line_no
 
         self._device = list_devices[usb_device].strip()
+        self.capture();
         
     def start(self):
         self._peripheral.flash(1)
         self._Popen = subprocess.Popen(
             [
-                '/home/jay/ustreamer/ustreamer',
+                '/usr/share/octobox/ustreamer',
                 '-d',  self._device,
                 '-s', '192.168.0.8', '-p', '8080',
                 '-r', '1280x720',

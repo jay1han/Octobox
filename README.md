@@ -4,22 +4,26 @@ Box for OrangePi Zero 2W running Octoprint for KP3S
 
 ## Server
 
-You need to obtain an API key from Octoprint and store it in api.key in plain text.
+You need to obtain an API key from Octoprint and store it in `api.key` in plain text.
 
 ### States
 
-| State    | When                   | Look for               | Change to | Also do                            |
-|----------|------------------------|------------------------|-----------|------------------------------------|
-| Off      | printer is off         | event `power`          | PowerOn   | switch Relay ON and wait 5 seconds |
-| PowerOn  | printer is powering on | timeout 5 seconds      | On        |                                    |
-| On       | printer is on          | Octo is `Operational`  | Idle      |                                    |
-| Idle     | ready for print        | event `power`          | Off       | switch everything OFF              |
-|          |                        | Octo is `Printing`     | Printing  | start Camera                       |
-| Printing | print job running      | Octo has error         | Off       | switch everything OFF              |
-|          |                        | Octo is not `Printing` | Cooling   | stop Camera                        |
-|          |                        | event `power`          | Cooling   | cancel Octo print job              |
-| Cooling  | print job ended        | Octo has error         | Off       | switch everything OFF              |
-|          |                        | bed temp < 35C         | Off       | switch everything OFF              |
+| State    | When                   | Look for               | Change to | Also do                        |
+|----------|------------------------|------------------------|-----------|--------------------------------|
+| Off      | printer is off         | event `power`          | On        | switch Relay ON, start timeout |
+|          |                        | event `reboot`         | N/A       | reboot                         |
+| On       | printer is powering on | Octo is `Operational`  | Idle      |                                |
+|          |                        | Octo has error         | Off       | switch everything OFF          |
+|          |                        | Timeout elapsed        | Off       | switch everything OFF          |
+| Idle     | ready for print        | event `power`          | Off       | switch everything OFF          |
+|          |                        | event `reboot`         | N/A       | reboot                         |
+|          |                        | Octo has error         | Off       | switch everything OFF          |
+|          |                        | Octo is `Printing`     | Printing  | start Camera                   |
+| Printing | print job running      | Octo has error         | Cooling   | start Fan                      |
+|          |                        | Octo is not `Printing` | Cooling   | start Fan                      |
+|          |                        | event `cancel`         | Cooling   | cancel Octo job, start Fan     |
+| Cooling  | print job ended        | Octo has error         | Off       | switch everything OFF          |
+|          |                        | bed temp < 35C         | Off       | switch everything OFF          |
 
 ### Peripheral
 
@@ -43,7 +47,7 @@ When active, ustreamer is available at the URL
 
 - `start()` starts ustreamer.
 
-- `stop()` stops it.
+- `stop()` stops it. Calls `capture()`.
 
 - `capture()` captures a still image into `/var/www/html/image.jpg`.
 
@@ -53,7 +57,7 @@ This actually just updates the data files that are used by the HTML to display t
 
 - `localIP` contains the local IP address.
 
-- `state` contains a line of text taken from Octoprint.
+- `state` contains the title of the document, which is the state returned by Octoprint.
 
 - `temps` contains HTML snippet showing temperatures.
 
@@ -62,6 +66,7 @@ This actually just updates the data files that are used by the HTML to display t
 ### Octo
 
 This uses Octoprint's REST API to interact with it.
+You need to obtain an API key from Octoprint and store it in `api.key` in plain text.
 
 - Queries : `job` or `printer` queries.
 
