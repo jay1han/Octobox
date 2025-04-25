@@ -1,4 +1,3 @@
-
 import json
 from urllib.request import urlopen, Request
 
@@ -61,18 +60,23 @@ class Octoprint:
                         'Content-Type': 'application/json'
                         }
                     )
+        print(f'Request "{r.full_url}"')
+        print(f'Data "{data}"')
         try:
             urlopen(r, bytes(data, 'ascii'))
         except OSError:
             pass
 
     def disconnect(self):
+        print('Disconnect')
         self.request('connection', '{ "command": "disconnect" }')
 
     def connect(self):
+        print('Connect')
         self.request('connection', '{ "command": "connect" }')
 
     def cancel(self):
+        print('Cancel')
         self.request('job', '{ "command": "cancel" }')
 
     def getState(self):

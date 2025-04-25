@@ -1,8 +1,11 @@
 from periphery import GPIO
+import signal
+import subprocess, os, re
+from time import sleep
 
 _GPIO_FLASH = 76
-_GPIO_FAN   = 260
-_GPIO_POWER = 259
+_GPIO_FAN   = 259
+_GPIO_POWER = 260
     
 class Peripheral:
     def __init__(self):
@@ -44,3 +47,66 @@ class Peripheral:
         self.flash(0)
         self.fan(0)
         self.relay(0)
+
+class Camera:
+    def __init__(self, peripheral: Peripheral):
+        self._peripheral = peripheral
+        ps = subprocess.run(['/usr/bin/ps', '-C', 'ustreamer', '--no-headers', '-o', 'pid'],
+                            capture_output=True, text=True)\
+                            .stdout.strip()
+        if ps != '':
+            print(f'Kill streamer PID={ps}')
+            os.kill(int(ps), signal.SIGTERM)
+        self._Popen = None
+        list_devices = subprocess.run(['/usr/bin/v4l2-ctl', '--list-devices'],
+                                      capture_output=True, text=True)\
+                                 .stdout.splitlines()
+        line_no = 0
+        usb_device = 0
+        for line in list_devices:
+            line_no += 1
+            if re.search('Camera', line):
+                usb_device = line_no
+
+        self._device = list_devices[usb_device].strip()
+        print(f'Camera found on {self._device}')
+        self.capture()
+        
+    def start(self):
+        self._peripheral.flash(1)
+        self._Popen = subprocess.Popen(
+            [
+                '/usr/share/octobox/ustreamer',
+                '-d',  self._device,
+                '-s', '192.168.0.8', '-p', '8080',
+                '-r', '1280x720',
+                '-m', 'MJPEG',
+                '--device-timeout', '10',
+                '-l'
+            ]
+        )
+        print(f'Started webcam process {self._Popen.pid}')
+
+    def stop(self):
+        if self._Popen is not None:
+            print('Stop streamer')
+            self._Popen.terminate()
+            self._Popen.wait()
+        self._peripheral.flash(0)
+
+    def capture(self):
+        self._peripheral.flash(1)
+        sleep(1)
+        subprocess.run(
+            [
+                '/usr/bin/fswebcam',
+                '-d', self._device,
+                '-r', '1280x720',
+                '-F', '1', '--no-banner',
+                '/var/www/html/image.jpg'
+            ]
+        )
+        self._peripheral.flash(0)
+
+    def __del__(self):
+        self.stop()

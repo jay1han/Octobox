@@ -4,9 +4,8 @@ from time import sleep
 from datetime import datetime, timedelta
 from enum import Enum
 
-from octo_cam import Camera
+from octo_periph import Peripheral, Camera
 from octo_disp import Display
-from octo_periph import Peripheral
 from octo_print import Octoprint
 from octo_socket import Socket
 
@@ -25,6 +24,7 @@ class State(Enum):
 class Octobox:
     def __init__(self):
         self.state = State.Off
+        self.octo = ''
         self.timeout = None
         self.elapsed = 0
 
@@ -59,11 +59,6 @@ class Octobox:
     def powerOn(self):
         self.p.relay(True)
 
-    def processReboot(self):
-        self.o.disconnect()
-        self.powerOff()
-        # TODO
-
     def reboot(self):
         # TODO
         pass
@@ -74,20 +69,27 @@ class Octobox:
         tempExt, tempBed = self.o.getTemps()
         tempCpu = readCpuTemp()
 
-        print(f'{self.state} -> "{state}", "{event}"')
+        if event != '' or self.octo != state:
+            print(f'State {self.state}: State "{state}", Event "{event}"')
+            self.octo = state
 
         if self.state == State.Off:
-            if event == 'power':
+            if event == 'refresh':
+                self.c.capture()
+            elif event == 'power':
                 self.powerOn()
+                sleep(1)
                 self.o.connect()
-                self.setTimeout(10)
+                self.setTimeout(15)
                 self.state = State.On
             elif event == 'reboot':
                 self.powerOff()
                 self.reboot()
 
         elif self.state == State.On:
-            if state.startswith('Operational'):
+            if event == 'refresh':
+                self.c.capture()
+            elif state.startswith('Operational'):
                 self.setTimeout(0)
                 self.state = State.Idle
             elif state.startswith('Error') or self.isTimedout():
@@ -96,7 +98,9 @@ class Octobox:
                 self.state = State.Off
 
         elif self.state == State.Idle:
-            if state.startswith('Printing'):
+            if event == 'refresh':
+                self.c.capture()
+            elif state.startswith('Printing'):
                 self.c.start()
                 self.state = State.Printing
             elif state.startswith('Error') or event == 'power':
@@ -117,7 +121,10 @@ class Octobox:
                 self.state = State.Cooling
 
         elif self.state == State.Cooling:
-            if state.startswith('Error') or tempBed < 35.0:
+            if event == 'refresh':
+                self.c.capture()
+            elif state.startswith('Error') or tempBed < 35.0 or event == 'power':
+                self.o.disconnect()
                 self.powerOff()
                 self.state = State.Off
                 
@@ -131,12 +138,13 @@ class Octobox:
         elif self.state == State.Idle:
             self.d.setState(state)
         elif self.state == State.Printing:
+            self.d.setState(state)
             jobInfo = self.o.getJobInfo()
             self.elapsed = jobInfo.currentTime
             self.d.setJobInfo(jobInfo)
         elif self.state == State.Cooling:
-            self.d.setElapsed(self.elapsed)
             self.d.setState('Cooling')
+            self.d.setElapsed(self.elapsed)
 
 octobox = Octobox()
 

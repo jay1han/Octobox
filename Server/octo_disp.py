@@ -5,8 +5,6 @@ from datetime import datetime, timedelta
 
 from octo_print import JobInfo
 
-_JSON_FILE = "/var/www/html/json"
-
 def printTime0(seconds):
     if seconds == 0:
         return ''

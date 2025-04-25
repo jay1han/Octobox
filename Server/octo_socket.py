@@ -1,4 +1,4 @@
-import fcntl, os
+import fcntl, os, subprocess
 
 SOCK_FILE  = '/usr/share/octobox/socket'
 
