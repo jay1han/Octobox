@@ -35,10 +35,10 @@
               let localIPText = await localIP.text();
               
               let port = window.location.port;
-              if (port == 8000 || port == 50080) {
-                  document.getElementById("webcam").src = "http://jayhan.name:58088/?action=stream";
+              if (port == 58080) {
+                  document.getElementById("webcam").src = "http://jayhan.name:58088/stream";
               } else {
-                  document.getElementById("webcam").src = `http://${localIPText}:8080/?action=stream`;
+                  document.getElementById("webcam").src = `http://${localIPText}:8080/stream`;
               }
           }
       }

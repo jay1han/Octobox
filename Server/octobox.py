@@ -117,6 +117,8 @@ class Octobox:
                 self.state = State.Cooling
             elif event == 'cancel':
                 self.o.cancel()
+                self.c.stop()
+                self.c.capture()
                 self.p.fan(True)
                 self.state = State.Cooling
 

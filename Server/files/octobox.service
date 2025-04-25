@@ -8,6 +8,7 @@ Environment="LC_ALL=C.UTF-8"
 Environment="LANG=C.UTF-8"
 Type=exec
 User=root
+WorkingDirectory=/usr/share/octobox
 ExecStart=/usr/share/octobox/octobox.py
 Restart=on-failure
 RestartSec=60s

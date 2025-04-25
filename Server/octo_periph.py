@@ -78,7 +78,6 @@ class Camera:
             [
                 '/usr/share/octobox/ustreamer',
                 '-d',  self._device,
-                '-s', '192.168.0.8', '-p', '8080',
                 '-r', '1280x720',
                 '-m', 'MJPEG',
                 '--device-timeout', '10',
@@ -95,6 +94,7 @@ class Camera:
         self._peripheral.flash(0)
 
     def capture(self):
+        print(f'Capture image')
         self._peripheral.flash(1)
         sleep(1)
         subprocess.run(

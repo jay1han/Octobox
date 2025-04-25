@@ -22,8 +22,10 @@ systemctl status octobox
 # systemctl enable autossh
 # systemctl restart autossh
 # systemctl status autossh
+# iptables -t nat -A PREROUTING -p tcp -d 192.168.0.8 --dport 8080 -j DNAT --to-destination 127.0.0.1
 
 cat files/localIP
-echo Please check IP address above
-echo Please create a password file
-echo sudo htpasswd /etc/apache2/.htpasswd guest
+echo "Please check IP address above"
+echo "Please set up Octoprint API key in file /usr/share/octobox/api.key"
+echo "Please create a password file"
+echo "    sudo htpasswd /etc/apache2/.htpasswd guest"
