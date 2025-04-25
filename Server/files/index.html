@@ -20,26 +20,31 @@
           document.getElementById("temps").innerHTML = tempsText;
           document.getElementById("jobInfo").innerHTML = jobInfoText;
 
-          if (stateText.startsWith("Printing")) setupStream();
-          else setupImage();
+          if (stateText.startsWith("Printing")) {
+              setupStream();
+          } else {
+              setupImage();
+          }
       
           setTimeout(getUpdate, 1000);
       }
 
       async function setupStream() {
-          let localIP = await fetch("localIP", { cache: 'no-cache', mode: 'no-cors' });
-          let localIPText = await localIP.text();
-          
-          let port = window.location.port;
-          if (port == 8000 || port == 50080) {
-              document.getElementById("webcam").src = "http://jayhan.name:58088/?action=stream";
-          } else {
-              document.getElementById("webcam").src = `http://${localIPText}:8080/?action=stream`;
+          if (document.getElementById("webcam").src.endsWith("jpg")) {
+              let localIP = await fetch("localIP");
+              let localIPText = await localIP.text();
+              
+              let port = window.location.port;
+              if (port == 8000 || port == 50080) {
+                  document.getElementById("webcam").src = "http://jayhan.name:58088/?action=stream";
+              } else {
+                  document.getElementById("webcam").src = `http://${localIPText}:8080/?action=stream`;
+              }
           }
       }
 
       async function setupImage() {
-          let image = await fetch("image.jpg", { cache: 'no-cache', mode: 'no-cors' });
+          let image = await fetch("image.jpg");
           document.getElementById("webcam").src = "image.jpg";
       }
 
