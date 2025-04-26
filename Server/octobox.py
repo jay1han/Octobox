@@ -81,6 +81,7 @@ class Octobox:
                 sleep(1)
                 self.o.connect()
                 self.setTimeout(15)
+                self.c.start()
                 self.state = State.On
             elif event == 'reboot':
                 self.powerOff()
@@ -98,10 +99,7 @@ class Octobox:
                 self.state = State.Off
 
         elif self.state == State.Idle:
-            if event == 'refresh':
-                self.c.capture()
-            elif state.startswith('Printing'):
-                self.c.start()
+            if state.startswith('Printing'):
                 self.state = State.Printing
             elif state.startswith('Error') or event == 'power':
                 self.o.disconnect()
@@ -123,9 +121,7 @@ class Octobox:
                 self.state = State.Cooling
 
         elif self.state == State.Cooling:
-            if event == 'refresh':
-                self.c.capture()
-            elif state.startswith('Error') or tempBed < 35.0 or event == 'power':
+            if state.startswith('Error') or tempBed < 35.0 or event == 'power':
                 self.o.disconnect()
                 self.powerOff()
                 self.state = State.Off

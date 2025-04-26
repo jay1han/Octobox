@@ -20,7 +20,9 @@
           document.getElementById("temps").innerHTML = tempsText;
           document.getElementById("jobInfo").innerHTML = jobInfoText;
 
-          if (stateText.startsWith("Printing")) {
+          if (stateText.startsWith("Printing") ||
+              stateText.startsWith("Operational") ||
+              stateText.startsWith("Cooling")) {
               setupStream();
           } else {
               setupImage();
