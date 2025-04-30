@@ -46,8 +46,7 @@
       }
 
       async function setupImage() {
-          let image = await fetch("image.jpg");
-          document.getElementById("webcam").src = "image.jpg";
+          document.getElementById("webcam").src = "image.jpg?" + new Date().valueOf();
       }
 
       function setup() {

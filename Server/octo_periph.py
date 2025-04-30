@@ -1,6 +1,6 @@
 from periphery import GPIO
 import signal
-import subprocess, os, re
+import subprocess, os, re, sys
 from time import sleep
 
 _GPIO_FLASH = 76
@@ -55,7 +55,7 @@ class Camera:
                             capture_output=True, text=True)\
                             .stdout.strip()
         if ps != '':
-            print(f'Kill streamer PID={ps}')
+            print(f'Kill streamer PID={ps}', file=sys.stderr)
             os.kill(int(ps), signal.SIGTERM)
         self._Popen = None
         list_devices = subprocess.run(['/usr/bin/v4l2-ctl', '--list-devices'],
@@ -69,7 +69,7 @@ class Camera:
                 usb_device = line_no
 
         self._device = list_devices[usb_device].strip()
-        print(f'Camera found on {self._device}')
+        print(f'Camera found on {self._device}', file=sys.stderr)
         self.capture()
         
     def start(self):
@@ -84,25 +84,24 @@ class Camera:
                 '-l'
             ]
         )
-        print(f'Started webcam process {self._Popen.pid}')
+        print(f'Started webcam process {self._Popen.pid}', file=sys.stderr)
 
     def stop(self):
         if self._Popen is not None:
-            print('Stop streamer')
+            print('Stop streamer', file=sys.stderr)
             self._Popen.terminate()
             self._Popen.wait()
-        self._peripheral.flash(0)
+        self.capture()
 
     def capture(self):
-        print(f'Capture image')
+        print('Capture image', file=sys.stderr)
         self._peripheral.flash(1)
-        sleep(1)
         subprocess.run(
             [
                 '/usr/bin/fswebcam',
                 '-d', self._device,
                 '-r', '1280x720',
-                '-F', '1', '--no-banner',
+                '-F', '3', '-S', '2', '--no-banner',
                 '/var/www/html/image.jpg'
             ]
         )
