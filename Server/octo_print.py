@@ -96,10 +96,12 @@ class Octoprint:
             return 0, 0
         else:
             tempExt = 0
-            if printer['temperature'].get('tool0') is not None:
+            if printer['temperature'].get('tool0') is not None \
+              and printer['temperature']['tool0'].get('actual') is not None:
                 tempExt = float(printer['temperature']['tool0']['actual'])
             tempBed = 0
-            if printer['temperature'].get('bed') is not None:
+            if printer['temperature'].get('bed') is not None \
+              and printer['temperature']['bed'].get('actual') is not None:
                 tempBed = float(printer['temperature']['bed']['actual'])
             return tempExt, tempBed
 

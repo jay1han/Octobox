@@ -11,10 +11,13 @@ class Peripheral:
     def __init__(self):
         self._flash = 0
         self._flashGpio = GPIO("/dev/gpiochip0", _GPIO_FLASH, "out")
+        self._flashGpio.write(False)
         self._fan = 0
         self._fanGpio = GPIO("/dev/gpiochip0", _GPIO_FAN, "out")
+        self._fanGpio.write(False)
         self._relay = 0
         self._relayGpio = GPIO("/dev/gpiochip0", _GPIO_POWER, "out")
+        self._relayGpio.write(False)
         
     def flash(self, state = None) -> int:
         if state is not None:
@@ -48,10 +51,11 @@ class Peripheral:
         self.fan(0)
         self.relay(0)
 
+# ps H -o pid -C stream --no-headers
 class Camera:
     def __init__(self, peripheral: Peripheral):
         self._peripheral = peripheral
-        ps = subprocess.run(['/usr/bin/ps', '-C', 'ustreamer', '--no-headers', '-o', 'pid'],
+        ps = subprocess.run(['/usr/bin/ps', 'H', '-C', 'stream', '--no-headers', '-o', 'pid'],
                             capture_output=True, text=True)\
                             .stdout.strip()
         if ps != '':
