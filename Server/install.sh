@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-# apt install python3-smbus
+apt install autossh python3-periphery apache2 fswebcam
 
 mkdir -v /usr/share/octobox
 cp -pv octo*.py /usr/share/octobox/
