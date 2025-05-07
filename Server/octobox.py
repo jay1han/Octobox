@@ -74,7 +74,10 @@ class Octobox:
             self.octo = state
 
         if self.state == State.Off:
-            if event == 'refresh':
+            if state.startswith('Operational'):
+                self.setTimeout(0)
+                self.state = State.Idle
+            elif event == 'refresh':
                 self.c.capture()
             elif event == 'power':
                 self.powerOn()

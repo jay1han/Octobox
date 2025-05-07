@@ -80,13 +80,14 @@ class Camera:
         self._peripheral.flash(1)
         self._Popen = subprocess.Popen(
             [
-                '/usr/share/octobox/ustreamer',
-                '-d',  self._device,
-                '-r', '1280x720',
-                '-m', 'MJPEG',
-                '--device-timeout', '10',
-                '-l'
-            ]
+             '/usr/share/octobox/ustreamer',
+             '-d',  self._device,
+             '-r', '1280x720',
+             '-m', 'MJPEG',
+             '--device-timeout', '10',
+             '--host=0.0.0.0',
+             '-l'
+             ]
         )
         print(f'Started webcam process {self._Popen.pid}', file=sys.stderr)
 
