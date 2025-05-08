@@ -24,7 +24,7 @@ class State(Enum):
 class Octobox:
     def __init__(self):
         self.state = State.Off
-        self.octo = ''
+        self.octo_state = ''
         self.timeout = None
         self.elapsed = 0
 
@@ -33,6 +33,8 @@ class Octobox:
         self.o = Octoprint()
         self.d = Display()
         self.s = Socket()
+
+        self.d.setState('Printer Off')
 
     def __del__(self):
         pass
@@ -64,19 +66,21 @@ class Octobox:
         pass
     
     def loop(self):
-        state = self.o.getState()
+        octo_state = self.o.getState()
         event = self.s.read()
         tempExt, tempBed = self.o.getTemps()
         tempCpu = readCpuTemp()
 
-        if event != '' or self.octo != state:
-            print(f'State {self.state}: State "{state}", Event "{event}"')
-            self.octo = state
+        if event != '' or self.octo_state != octo_state:
+            print(f'State {self.state}: State "{octo_state}", Event "{event}"')
+            self.octo_state = octo_state
 
         if self.state == State.Off:
-            if state.startswith('Operational'):
+            if octo_state.startswith('Operational'):
                 self.setTimeout(0)
                 self.state = State.Idle
+                jobInfo = self.o.getJobInfo()
+                self.d.setJobInfo(jobInfo)
             elif event == 'refresh':
                 self.c.capture()
             elif event == 'power':
@@ -93,18 +97,18 @@ class Octobox:
         elif self.state == State.On:
             if event == 'refresh':
                 self.c.capture()
-            elif state.startswith('Operational'):
+            elif octo_state.startswith('Operational'):
                 self.setTimeout(0)
                 self.state = State.Idle
-            elif state.startswith('Error') or self.isTimedout():
+            elif octo_state.startswith('Error') or self.isTimedout():
                 self.o.disconnect()
                 self.powerOff()
                 self.state = State.Off
 
         elif self.state == State.Idle:
-            if state.startswith('Printing'):
+            if octo_state.startswith('Printing'):
                 self.state = State.Printing
-            elif state.startswith('Error') or event == 'power':
+            elif octo_state.startswith('Error') or event == 'power':
                 self.o.disconnect()
                 self.powerOff()
                 self.state = State.Off
@@ -113,7 +117,7 @@ class Octobox:
                 self.reboot()
 
         elif self.state == State.Printing:
-            if not state.startswith('Printing'):
+            if not octo_state.startswith('Printing'):
                 self.p.fan(True)
                 self.state = State.Cooling
             elif event == 'cancel':
@@ -124,7 +128,7 @@ class Octobox:
                 self.state = State.Cooling
 
         elif self.state == State.Cooling:
-            if state.startswith('Error') or tempBed < 35.0 or event == 'power':
+            if octo_state.startswith('Error') or tempBed < 35.0 or event == 'power':
                 self.o.disconnect()
                 self.powerOff()
                 self.state = State.Off
@@ -137,16 +141,16 @@ class Octobox:
         if self.state == State.Off:
             self.d.setState('Printer Off')
         elif self.state == State.Idle:
-            self.d.setState(state)
+            self.d.setState(octo_state)
         elif self.state == State.Printing:
-            self.d.setState(state)
+            self.d.setState(octo_state)
             jobInfo = self.o.getJobInfo()
             self.elapsed = jobInfo.currentTime
             self.d.setJobInfo(jobInfo)
         elif self.state == State.Cooling:
             self.d.setState('Cooling')
             self.d.setElapsed(self.elapsed)
-
+            
 octobox = Octobox()
 
 while True:

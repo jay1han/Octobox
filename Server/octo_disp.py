@@ -5,16 +5,10 @@ from datetime import datetime, timedelta
 
 from octo_print import JobInfo
 
-def printTime0(seconds):
-    if seconds == 0:
-        return ''
-    return (datetime.now().replace(hour=0, minute=0, second=0) + timedelta(seconds=int(seconds))).strftime('%H:%M')
-
 def printTime(seconds):
-    text = printTime0(seconds)
-    if text == '':
-        return '..:..'
-    return text
+    if seconds == 0: return ''
+    else:
+        return (datetime.now().replace(hour=0, minute=0, second=0) + timedelta(seconds=int(seconds))).strftime('%H:%M')
 
 def replaceText(filename, text):
     with open(f"{filename}.1", "w") as newfile:
@@ -54,52 +48,37 @@ class Display:
         replaceText('/var/www/html/temps', temps)
 
     def setElapsed(self, currentTime):
-        jobInfoText = '<tr><td>File</td><td></td></tr>'
-        jobInfoText += f'<tr><td>Elapsed</td><td>{printTime0(currentTime)}</td></tr>'
-        jobInfoText += '<tr><td>ETA</td><td></td></tr>'
-        jobInfoText += f'<tr><td>Now</td><td>{self.lastNow}</td></tr>'
+        jobInfoText = f'<tr><td>File</td><td>{self.jobInfo.filename}</td></tr>'
+        jobInfoText += f'<tr><td>Elapsed</td><td>{printTime(currentTime)}</td></tr>'
+        jobInfoText += f'<tr><td>Ended</td><td>{self.lastNow}</td></tr>'
+        replaceText('/var/www/html/jobInfo', jobInfoText)
         
     def setJobInfo(self, jobInfo:JobInfo):
-        filename, currentTime, remainingTime, fileEstimate, donePercent = jobInfo.get()
-        if filename != '':
-            jobInfoText = f'<tr><td>File</td><td>{filename}</td></tr>'
-        else:
-            jobInfoText = f'<tr><td>File</td><td>{self.jobInfo.filename}</td></tr>'
-
-        if currentTime > 0:
-            jobInfoText += f'<tr><td>Elapsed</td><td>{printTime0(currentTime)} ({donePercent:.1f}%)</td></tr>'
-
-            eta2 = eta1 = datetime.now()
-            if remainingTime != 0:
-                eta1 = (datetime.now() + timedelta(seconds = (remainingTime + 60))).replace(second=0)
-            if fileEstimate != 0:
-                eta2 = (datetime.now() - timedelta(seconds = currentTime) + timedelta(seconds = (fileEstimate + 60))).replace(second=0)
-            if eta2 < eta1:
-                eta = eta1
-                eta1 = eta2
-                eta2 = eta
-
-            etas = '(No estimate)'
-            if eta1 > datetime.now():
-                etas = f'{eta1.strftime("%H:%M")} ~ {eta2.strftime("%H:%M")}'
-            elif eta2 > datetime.now():
-                etas = eta2.strftime("%H:%M")
-
-            jobInfoText += f'<tr><td>ETA</td><td>{etas}</td></tr>'
-            self.lastNow = datetime.now().strftime("%H:%M")
-            jobInfoText += f'<tr><td>Now</td><td>{self.lastNow}</td></tr>'
+        if jobInfo.filename == '':
+            jobInfoText = ''
             
         else:
-            jobInfoText += f'<tr><td>Elapsed</td><td>{printTime0(currentTime)}</td></tr>'
-            jobInfoText += f'<tr><td>ETA</td><td> </td></tr>'
-            if self.jobInfo.filename != '':
-                jobInfoText += f'<tr><td>Ended</td><td>{self.lastNow}</td></tr>'
+            jobInfoText = f'<tr><td>File</td><td>{jobInfo.filename}</td></tr>'
+
+            if jobInfo.fileTime > 0:
+                remainingTime = jobInfo.fileTime - jobInfo.currentTime
+                eta = (datetime.now() + timedelta(seconds = (remainingTime + 60))).replace(second=0)
+                etas = eta.strftime("%H:%M")
+                donePercent = 100.0 * jobInfo.currentTime / jobInfo.fileTime
             else:
-                jobInfoText += f'<tr><td>Ended</td><td> </td></tr>'
+                remainingTime = 0
+                donePercent = 0.0
+                etas = ''
+            
+            self.lastNow = datetime.now().strftime('%H:%M')
+        
+            jobInfoText += f'<tr><td>Elapsed</td><td>{printTime(jobInfo.currentTime)} ({donePercent:.1f}%)</td></tr>'
+            jobInfoText += f'<tr><td>ETA</td><td>{etas}</td></tr>'
+            jobInfoText += f'<tr><td>Now</td><td>{self.lastNow}</td></tr>'
 
         self.jobInfo = jobInfo
         replaceText('/var/www/html/jobInfo', jobInfoText)
 
     def clearInfo(self):
         self.setTemps([0.0, 0.0, 0.0, 0.0])
-        self.setJobInfo(JobInfo('', 0.0, 0.0, 0.0, 0.0))
+        self.setJobInfo(JobInfo())

@@ -2,6 +2,9 @@
 
 apt install autossh python3-periphery apache2 fswebcam
 
+usermod -aG octoprint www-data
+chmod -Rv g+r /home/octoprint/.octoprint/uploads
+
 mkdir -v /usr/share/octobox
 cp -pv octo*.py /usr/share/octobox/
 cp -pv ustreamer/ustreamer.bin /usr/share/octobox/ustreamer
