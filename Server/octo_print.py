@@ -1,4 +1,4 @@
-import json, re
+import json, re, sys
 from urllib.request import urlopen, Request
 
 APIKEY  = ''
@@ -54,23 +54,21 @@ class Octoprint:
                         'Content-Type': 'application/json'
                         }
                     )
-        print(f'Request "{r.full_url}"')
-        print(f'Data "{data}"')
         try:
             urlopen(r, bytes(data, 'ascii'))
         except OSError:
             pass
 
     def disconnect(self):
-        print('Disconnect')
+        print('Disconnect', file=sys.stderr)
         self.request('connection', '{ "command": "disconnect" }')
 
     def connect(self):
-        print('Connect')
+        print('Connect', file=sys.stderr)
         self.request('connection', '{ "command": "connect" }')
 
     def cancel(self):
-        print('Cancel')
+        print('Cancel', file=sys.stderr)
         self.request('job', '{ "command": "cancel" }')
 
     def getState(self):

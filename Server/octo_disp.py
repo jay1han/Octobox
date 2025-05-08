@@ -18,7 +18,8 @@ def replaceText(filename, text):
 class Display:
     def __init__(self):
         self.jobInfo = JobInfo()
-        self.lastNow = ''
+        self.started = None
+        self.ended = None
         self.clearInfo()
         self.setState('Printer')
 
@@ -47,38 +48,55 @@ class Display:
         temps += f'<tr><td>CPU</td><td>{tempCpu:.1f}&deg;</td></tr>'
         replaceText('/var/www/html/temps', temps)
 
-    def setElapsed(self, currentTime):
+    def setElapsed(self, actualTime):
         jobInfoText = f'<tr><td>File</td><td>{self.jobInfo.filename}</td></tr>'
-        jobInfoText += f'<tr><td>Elapsed</td><td>{printTime(currentTime)}</td></tr>'
-        jobInfoText += f'<tr><td>Ended</td><td>{self.lastNow}</td></tr>'
+        jobInfoText += f'<tr><td>Actual/Estimated</td><td>{printTime(actualTime)}/{printTime(self.jobInfo.fileTime)}</td></tr>'
+        jobInfoText += f'<tr><td>Ended</td><td>{self.ended.strftime("%H:%M")}</td></tr>'
         replaceText('/var/www/html/jobInfo', jobInfoText)
         
-    def setJobInfo(self, jobInfo:JobInfo):
-        if jobInfo.filename == '':
-            jobInfoText = ''
-            
+    def setJobInfo(self, jobInfo:JobInfo = None):
+        if jobInfo is None:
+            jobInfo = self.jobInfo
         else:
-            jobInfoText = f'<tr><td>File</td><td>{jobInfo.filename}</td></tr>'
+            self.jobInfo = jobInfo
 
-            if jobInfo.fileTime > 0:
-                remainingTime = jobInfo.fileTime - jobInfo.currentTime
-                eta = (datetime.now() + timedelta(seconds = (remainingTime + 60))).replace(second=0)
-                etas = eta.strftime("%H:%M")
-                donePercent = 100.0 * jobInfo.currentTime / jobInfo.fileTime
-            else:
+        jobInfoText = ''
+        
+        if jobInfo.filename != '':
+            jobInfoText = f'<tr><td>File</td><td>{jobInfo.filename}</td></tr>'
+            self.lastNow = datetime.now().strftime('%H:%M')
+
+            if self.started is not None:
                 remainingTime = 0
                 donePercent = 0.0
-                etas = ''
+                eta = ''
+                
+                if jobInfo.fileTime > 0:
+                    remainingTime = jobInfo.fileTime - jobInfo.currentTime
+                    eta = (self.started + timedelta(seconds = jobInfo.fileTime)).strftime('%H:%M')
+                    donePercent = 100.0 * jobInfo.currentTime / jobInfo.fileTime
+                    
+                if self.ended is not None:
+                    donePercent = 100.0
+                    remainingTime = 0
+                    
+                jobInfoText += f'<tr><td>Elapsed/Remaining/Total</td>'
+                jobInfoText += f'<td>{printTime(jobInfo.currentTime)}/{printTime(remainingTime)}/{printTime(jobInfo.fileTime)} ({donePercent:.1f}%)</td></tr>'
+                jobInfoText += f'<tr><td>Started/Now/ETA</td>'
+                jobInfoText += f'<td>{self.started.strftime("%H:%H")}/{self.lastNow}/{eta}</td></tr>'
             
-            self.lastNow = datetime.now().strftime('%H:%M')
-        
-            jobInfoText += f'<tr><td>Elapsed</td><td>{printTime(jobInfo.currentTime)} ({donePercent:.1f}%)</td></tr>'
-            jobInfoText += f'<tr><td>ETA</td><td>{etas}</td></tr>'
-            jobInfoText += f'<tr><td>Now</td><td>{self.lastNow}</td></tr>'
-
-        self.jobInfo = jobInfo
         replaceText('/var/www/html/jobInfo', jobInfoText)
 
     def clearInfo(self):
         self.setTemps([0.0, 0.0, 0.0, 0.0])
         self.setJobInfo(JobInfo())
+        self.started = None
+        self.ended = None
+
+    def start(self):
+        self.started = datetime.now()
+        
+    def end(self):
+        self.ended = datetime.now()
+        self.setJobInfo()
+        

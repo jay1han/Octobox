@@ -3,6 +3,7 @@
 from time import sleep
 from datetime import datetime, timedelta
 from enum import Enum
+import sys
 
 from octo_periph import Peripheral, Camera
 from octo_disp import Display
@@ -48,22 +49,24 @@ class Octobox:
     def isTimedout(self):
         if self.timeout is not None and datetime.now() > self.timeout:
             self.timeout = None
-            print('Timeout')
+            print('Timeout', file=sys.stderr)
             return True
         else:
             return False
 
     def powerOff(self):
+        print('Power Off', file=sys.stderr)
         self.p.relay(False)
         self.p.fan(False)
         self.c.stop()
+        self.d.clearInfo()
 
     def powerOn(self):
+        print('Power On', file=sys.stderr)
         self.p.relay(True)
 
     def reboot(self):
-        # TODO
-        pass
+        print('Reboot', file=sys.stderr)
     
     def loop(self):
         octo_state = self.o.getState()
@@ -72,7 +75,7 @@ class Octobox:
         tempCpu = readCpuTemp()
 
         if event != '' or self.octo_state != octo_state:
-            print(f'State {self.state}: State "{octo_state}", Event "{event}"')
+            print(f'State {self.state}: State "{octo_state}", Event "{event}"', file=sys.stderr)
             self.octo_state = octo_state
 
         if self.state == State.Off:
@@ -100,15 +103,28 @@ class Octobox:
             elif octo_state.startswith('Operational'):
                 self.setTimeout(0)
                 self.state = State.Idle
-            elif octo_state.startswith('Error') or self.isTimedout():
+            elif octo_state.startswith('Error'):
+                print('Error', file=sys.stderr)
+                self.o.disconnect()
+                self.powerOff()
+                self.state = State.Off
+            elif self.isTimedout():
                 self.o.disconnect()
                 self.powerOff()
                 self.state = State.Off
 
         elif self.state == State.Idle:
             if octo_state.startswith('Printing'):
+                print('Print start', file=sys.stderr)
                 self.state = State.Printing
-            elif octo_state.startswith('Error') or event == 'power':
+                self.d.start()
+            elif octo_state.startswith('Error'):
+                print('Error', file=sys.stderr)
+                self.o.disconnect()
+                self.powerOff()
+                self.state = State.Off
+            elif event == 'power':
+                print('Error', file=sys.stderr)
                 self.o.disconnect()
                 self.powerOff()
                 self.state = State.Off
@@ -126,9 +142,13 @@ class Octobox:
                 self.c.capture()
                 self.p.fan(True)
                 self.state = State.Cooling
+            if self.state == State.Cooling:
+                print('Print ended', file=sys.stderr)
+                self.d.end()
 
         elif self.state == State.Cooling:
             if octo_state.startswith('Error') or tempBed < 35.0 or event == 'power':
+                print('Error', file=sys.stderr)
                 self.o.disconnect()
                 self.powerOff()
                 self.state = State.Off
