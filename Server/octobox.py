@@ -82,8 +82,6 @@ class Octobox:
             if octo_state.startswith('Operational'):
                 self.setTimeout(0)
                 self.state = State.Idle
-                jobInfo = self.o.getJobInfo()
-                self.d.setJobInfo(jobInfo)
             elif event == 'refresh':
                 self.c.capture()
             elif event == 'power':
@@ -103,7 +101,7 @@ class Octobox:
             elif octo_state.startswith('Operational'):
                 self.setTimeout(0)
                 self.state = State.Idle
-            elif octo_state.startswith('Error'):
+            elif octo_state.startswith('Error') or octo_state.startswith('Offline'):
                 print('Error', file=sys.stderr)
                 self.o.disconnect()
                 self.powerOff()
@@ -118,13 +116,13 @@ class Octobox:
                 print('Print start', file=sys.stderr)
                 self.state = State.Printing
                 self.d.start()
-            elif octo_state.startswith('Error'):
+            elif octo_state.startswith('Error') or octo_state.startswith('Offline'):
                 print('Error', file=sys.stderr)
                 self.o.disconnect()
                 self.powerOff()
                 self.state = State.Off
             elif event == 'power':
-                print('Error', file=sys.stderr)
+                print('Power Off', file=sys.stderr)
                 self.o.disconnect()
                 self.powerOff()
                 self.state = State.Off
@@ -147,8 +145,11 @@ class Octobox:
                 self.d.end()
 
         elif self.state == State.Cooling:
-            if octo_state.startswith('Error') or tempBed < 35.0 or event == 'power':
-                print('Error', file=sys.stderr)
+            if octo_state.startswith('Error') \
+              or octo_state.startswith('Offline') \
+              or tempBed < 35.0 \
+              or event == 'power':
+                print('Power Off', file=sys.stderr)
                 self.o.disconnect()
                 self.powerOff()
                 self.state = State.Off
@@ -162,6 +163,8 @@ class Octobox:
             self.d.setState('Printer Off')
         elif self.state == State.Idle:
             self.d.setState(octo_state)
+            jobInfo = self.o.getJobInfo()
+            self.d.setJobInfo(jobInfo)
         elif self.state == State.Printing:
             self.d.setState(octo_state)
             jobInfo = self.o.getJobInfo()

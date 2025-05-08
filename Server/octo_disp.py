@@ -63,10 +63,19 @@ class Display:
         jobInfoText = ''
         
         if jobInfo.filename != '':
-            jobInfoText = f'<tr><td>File</td><td>{jobInfo.filename}</td></tr>'
             self.lastNow = datetime.now().strftime('%H:%M')
 
-            if self.started is not None:
+            if self.started is None:
+                if jobInfo.fileTime == 0:
+                    jobInfoText = f'<tr><td>File</td><td colspan=3>{jobInfo.filename}</td></tr>'
+                else:
+                    eta = (datetime.now() + timedelta(seconds = jobInfo.fileTime)).strftime('%H:%M')
+                    jobInfoText = f'<tr><td>File</td><td colspan=3>{jobInfo.filename}</td></tr>'
+                    jobInfoText += f'<tr><td>Estimated</td><td>{printTime(jobInfo.fileTime)}</td></tr>'
+                    jobInfoText += f'<tr><td>Now</td><td>{datetime.now().strftime("%H:%M")}</td>'
+                    jobInfoText += f'<td>ETA</td><td>{eta}</td></tr>'
+                       
+            else:
                 remainingTime = 0
                 donePercent = 0.0
                 eta = ''
@@ -80,10 +89,13 @@ class Display:
                     donePercent = 100.0
                     remainingTime = 0
                     
-                jobInfoText += f'<tr><td>Elapsed/Remaining/Total</td>'
-                jobInfoText += f'<td>{printTime(jobInfo.currentTime)}/{printTime(remainingTime)}/{printTime(jobInfo.fileTime)} ({donePercent:.1f}%)</td></tr>'
-                jobInfoText += f'<tr><td>Started/Now/ETA</td>'
-                jobInfoText += f'<td>{self.started.strftime("%H:%M")}/{self.lastNow}/{eta}</td></tr>'
+                jobInfoText = f'<tr><td>File</td><td colspan=5>{jobInfo.filename}</td></tr>'
+                jobInfoText += f'<tr><td>Elapsed</td><td>{printTime(jobInfo.currentTime)} ({donePercent:.1f}%)</td>'
+                jobInfoText += f'<td>Remaining</td><td>{printTime(remainingTime)}</td>'
+                jobInfoText += f'<td>Total</td><td>{printTime(jobInfo.fileTime)}</td></tr>'
+                jobInfoText += f'<tr><td>Started</td><td>{self.started.strftime("%H:%M")}</td>'
+                jobInfoText += f'<td>Now</td><td>{self.lastNow}</td>'
+                jobInfoText += f'<td>ETA</td><td>{eta}</td></tr>'
             
         replaceText('/var/www/html/jobInfo', jobInfoText)
 
