@@ -83,7 +83,7 @@ class Display:
                 jobInfoText += f'<tr><td>Elapsed/Remaining/Total</td>'
                 jobInfoText += f'<td>{printTime(jobInfo.currentTime)}/{printTime(remainingTime)}/{printTime(jobInfo.fileTime)} ({donePercent:.1f}%)</td></tr>'
                 jobInfoText += f'<tr><td>Started/Now/ETA</td>'
-                jobInfoText += f'<td>{self.started.strftime("%H:%H")}/{self.lastNow}/{eta}</td></tr>'
+                jobInfoText += f'<td>{self.started.strftime("%H:%M")}/{self.lastNow}/{eta}</td></tr>'
             
         replaceText('/var/www/html/jobInfo', jobInfoText)
 
