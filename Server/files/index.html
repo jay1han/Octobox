@@ -32,7 +32,7 @@
       }
 
       async function setupStream() {
-          if (document.getElementById("webcam").src.endsWith("jpg")) {
+          if (document.getElementById("webcam").src.includes("jpg")) {
               let localIP = await fetch("localIP");
               let localIPText = await localIP.text();
               

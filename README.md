@@ -25,11 +25,11 @@ You need to obtain an API key from Octoprint and store it in `api.key` in plain 
 | Cooling  | print job ended        | Octo has error         | Off       | switch everything OFF                        |
 |          |                        | bed temp < 35C         | Off       | switch everything OFF                        |
 
-### Peripheral
+### Peripherals
 
 All methods take an optional argument to set the value,
 or return the current value if no argument is given.
-This module requires the SMBus module `python3-smbus`
+This module requires the module `python3-periphery`
 and to be given access. See `install.sh`.
 
 - `flash()` to switch the LED illuminating the camera.
@@ -43,7 +43,7 @@ This is used exclusively by the Camera module
 
 Upon initialization, kills current ustreamer if one is running.
 When active, ustreamer is available at the URL
-`http://192.168.0.8:8080`.
+`http://localhost:8080`.
 
 - `start()` starts ustreamer.
 
@@ -86,6 +86,10 @@ The GPI module uses the Socket library to send events to the running Octobox pro
 
 - `reboot` to reboot Octobox.
 
+- `cancel` cancels the print.
+
+- `refresh` captures a new image.
+
 ## Document
 
 - `Orange.pptx` shows the cabling of the Opi Zero 2W.
@@ -105,3 +109,13 @@ The GPI module uses the Socket library to send events to the running Octobox pro
     - `Touch` : housing for the touch sensor (ambient light)
 
     - `horiz2` : horizontal feeder for filament spool
+
+## TODO
+
+- Actuator
+
+- Temperature sensor(s)
+
+- Upgrade to 4GB
+
+- API for PiDi
