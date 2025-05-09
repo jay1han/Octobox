@@ -123,3 +123,5 @@ The GPI module uses the Socket library to send events to the running Octobox pro
 - Separate big fan control from power
 
 - Better lighting for camera
+
+- Reboot function

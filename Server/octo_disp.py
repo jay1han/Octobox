@@ -49,8 +49,9 @@ class Display:
         replaceText('/var/www/html/temps', temps)
 
     def setElapsed(self, actualTime):
-        jobInfoText = f'<tr><td>File</td><td>{self.jobInfo.filename}</td></tr>'
-        jobInfoText += f'<tr><td>Actual/Estimated</td><td>{printTime(actualTime)}/{printTime(self.jobInfo.fileTime)}</td></tr>'
+        jobInfoText = f'<tr><td>File</td><td colspan=3>{self.jobInfo.filename}</td></tr>'
+        jobInfoText += f'<tr><td>Actual</td><td>{printTime(actualTime)}</td>'
+        jobInfoText += f'<td>Estimated</td><td>{printTime(self.jobInfo.fileTime)}</td></tr>'
         jobInfoText += f'<tr><td>Ended</td><td>{self.ended.strftime("%H:%M")}</td></tr>'
         replaceText('/var/www/html/jobInfo', jobInfoText)
         
