@@ -40,12 +40,12 @@ class Display:
         temps = '<tr>'
         
         if tempExt != 0.0:
-            temps += f'<td>Extruder</td><td>{tempExt:.1f}&deg;</td>'
-            temps += f'<td>Bed</td><td>{tempBed:.1f}&deg;'
+            temps += f'<td>Extruder : {tempExt:.1f}&deg;</td>'
+            temps += f'<td>Bed : {tempBed:.1f}&deg;'
             if tempCold != 0.0:
                 temps += f'({tempCold:.1f})'
         temps += '</td>'
-        temps += f'<td>CPU</td><td>{tempCpu:.1f}&deg;</td></tr>'
+        temps += f'<td>CPU : {tempCpu:.1f}&deg;</td></tr>'
         replaceText('/var/www/html/temps', temps)
 
     def setElapsed(self, actualTime):
