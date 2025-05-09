@@ -37,15 +37,15 @@ class Display:
 
     def setTemps(self, temps):
         tempExt, tempBed, tempCpu, tempCold = temps
-        if tempExt == 0.0:
-            temps = f'<tr><td>Extruder</td><td></td></tr><tr><td>Bed</td><td></td></tr>'
-        else:
-            temps = f'<tr><td>Extruder</td><td>{tempExt:.1f}&deg;</td></tr>'
-            if tempCold == 0.0:
-                temps += f'<tr><td>Bed</td><td>{tempBed:.1f}&deg;</td></tr>'
-            else:
-                temps += f'<tr><td>Bed</td><td>{tempBed:.1f}&deg;({tempCold:.1f})</td></tr>'
-        temps += f'<tr><td>CPU</td><td>{tempCpu:.1f}&deg;</td></tr>'
+        temps = '<tr>'
+        
+        if tempExt != 0.0:
+            temps += f'<td>Extruder</td><td>{tempExt:.1f}&deg;</td>'
+            temps += f'<td>Bed</td><td>{tempBed:.1f}&deg;'
+            if tempCold != 0.0:
+                temps += f'({tempCold:.1f})'
+        temps += '</td>'
+        temps += f'<td>CPU</td><td>{tempCpu:.1f}&deg;</td></tr>'
         replaceText('/var/www/html/temps', temps)
 
     def setElapsed(self, actualTime):

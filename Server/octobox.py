@@ -59,10 +59,10 @@ class Octobox:
         self.p.relay(False)
         self.p.fan(False)
         self.c.stop()
-        self.d.clearInfo()
 
     def powerOn(self):
         print('Power On', file=sys.stderr)
+        self.d.clearInfo()
         self.p.relay(True)
 
     def reboot(self):
