@@ -98,6 +98,13 @@ class Camera:
             self._Popen.wait()
         self.capture()
 
+    def refresh(self):
+        if self._Popen is not None:
+            print('Stop streamer', file=sys.stderr)
+            self._Popen.terminate()
+            self._Popen.wait()
+        self.start()
+
     def capture(self):
         print('Capture image', file=sys.stderr)
         self._peripheral.flash(1)

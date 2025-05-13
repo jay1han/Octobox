@@ -1,88 +1,95 @@
 <html>
-  <head>
-    <meta name="viewport" content="width=600" />
-    <style>
-      body {font-family:"Arial", "Helvetica", "Verdana", "Calibri", sans-serif; hyphens:manual;}
-      table,th,tr,td {border:0; padding:0.2em 1em 0.2em 1em; margin:0; border-collapse:collapse; text-align:left; align:center;}
-      button {font-size: large;}
-    </style>
+    <head>
+        <meta name="viewport" content="width=600" />
+        <style>
+         body {font-family:"Arial", "Helvetica", "Verdana", "Calibri", sans-serif; hyphens:manual;}
+         table,th,tr,td {border:0; padding:0.2em 1em 0.2em 1em; margin:0; border-collapse:collapse; text-align:left; align:center;}
+         button {font-size: large;}
+        </style>
 
-    <script>
-      async function getUpdate() {
-          let state = await fetch("state", { cache: 'no-cache', mode: 'no-cors' });
-          let stateText = await state.text();
-          let temps = await fetch("temps", { cache: 'no-cache', mode: 'no-cors' });
-          let tempsText = await temps.text();
-          let jobInfo = await fetch("jobInfo", { cache: 'no-cache', mode: 'no-cors' });
-          let jobInfoText = await jobInfo.text();
-          
-          document.getElementById("state").innerHTML = stateText;
-          document.getElementById("temps").innerHTML = tempsText;
-          document.getElementById("jobInfo").innerHTML = jobInfoText;
+        <script>
+         async function getUpdate() {
+             let state = await fetch("state", { cache: 'no-cache', mode: 'no-cors' });
+             let stateText = await state.text();
+             let temps = await fetch("temps", { cache: 'no-cache', mode: 'no-cors' });
+             let tempsText = await temps.text();
+             let jobInfo = await fetch("jobInfo", { cache: 'no-cache', mode: 'no-cors' });
+             let jobInfoText = await jobInfo.text();
+             
+             document.getElementById("state").innerHTML = stateText;
+             document.getElementById("temps").innerHTML = tempsText;
+             document.getElementById("jobInfo").innerHTML = jobInfoText;
 
-          if (stateText.startsWith("Printing") ||
-              stateText.startsWith("Operational") ||
-              stateText.startsWith("Cooling")) {
-              setupStream();
-          } else {
-              setupImage();
-          }
-      
-          setTimeout(getUpdate, 1000);
-      }
+             if (stateText.startsWith("Printing") ||
+                 stateText.startsWith("Operational") ||
+                 stateText.startsWith("Cooling")) {
+                 setupStream();
+             } else {
+                 setupImage();
+             }
+             
+             setTimeout(getUpdate, 1000);
+         }
 
-      async function setupStream() {
-          if (document.getElementById("webcam").src.includes("jpg")) {
-              let localIP = await fetch("localIP");
-              let localIPText = await localIP.text();
-              
-              let port = window.location.port;
-              if (port == 58080) {
-                  document.getElementById("webcam").src = "http://jayhan.name:58088/stream";
-              } else {
-                  document.getElementById("webcam").src = `http://${localIPText}:8080/stream`;
-              }
-          }
-      }
+         async function setupStream() {
+             if (document.getElementById("webcam").src.includes("jpg")) {
+                 let localIP = await fetch("localIP");
+                 let localIPText = await localIP.text();
+                 
+                 let port = window.location.port;
+                 if (port == 58080) {
+                     document.getElementById("webcam").src = "http://jayhan.name:58088/stream";
+                 } else {
+                     document.getElementById("webcam").src = `http://${localIPText}:8080/stream`;
+                 }
+             }
+         }
 
-      async function setupImage() {
-          document.getElementById("webcam").src = "image.jpg?" + new Date().valueOf();
-      }
+         async function setupImage() {
+             document.getElementById("webcam").src = "image.jpg?" + new Date().valueOf();
+         }
 
-      function setup() {
-          getUpdate();
-      }
-      
-      window.addEventListener("load", setup);
-            
-    </script>
+         function waitRefresh() {
+             location.reload();
+         }
+
+         function setup() {
+             document.getElementById("refreshButton").addEventListener("click", (event) => {
+                 setTimeout(waitRefresh, 2000);
+             });
+             getUpdate();
+         }
+         
+         window.addEventListener("load", setup);
+         
+        </script>
+        
+        <title>Kingroon Live</title>
+    </head>
     
-    <title>Kingroon Live</title>
-  </head>
-  
-  <body>
-    <center>
-      <h1 id="state">Printer</h1>
-      
-      <p>
-        <form action="/bin/octo_cgi.py">
-          <button type="submit" name="action" value="refresh">Refresh</button>
-          <button type="submit" name="action" value="cancel">Cancel</button>
-          <button type="submit" name="action" value="power">Power</button>
-          <button type="submit" name="action" value="reboot">Reboot</button>
-        </form>
-      </p>
-      
-      <table id="temps"></table>
-      
-      <p></p>
-      
-      <table id="jobInfo"></table>
-      
-      <p><img id="webcam" src="image.jpg" /></p>
-      
-    </center>
+    <body>
+        <center>
+            <h1 id="state">Printer</h1>
+            
+            <p>
+                <form action="/bin/octo_cgi.py">
+                    <button id="refreshButton" type="submit" name="action" value="refresh">Refresh</button>
+                    <button type="submit" name="action" value="cancel">Cancel</button>
+                    <button type="submit" name="action" value="power">Power</button>
+                    <button type="submit" name="action" value="reboot">Reboot</button>
+                </form>
+            </p>
+            
+            <table id="temps"></table>
+            
+            <p></p>
+            
+            <table id="jobInfo"></table>
+            
+            <p><img id="webcam" src="image.jpg" /></p>
+            
+        </center>
 
-    <p id="log"></p>
-  </body>
+        <p id="log"></p>
+    </body>
 </html>

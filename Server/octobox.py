@@ -3,7 +3,7 @@
 from time import sleep
 from datetime import datetime, timedelta
 from enum import Enum
-import sys
+import sys, subprocess
 
 from octo_periph import Peripheral, Camera
 from octo_disp import Display
@@ -67,6 +67,7 @@ class Octobox:
 
     def reboot(self):
         print('Reboot', file=sys.stderr)
+        ps = subprocess.run(['/usr/sbin/reboot', 'now'])
     
     def loop(self):
         octo_state = self.o.getState()
@@ -121,6 +122,8 @@ class Octobox:
                 self.o.disconnect()
                 self.powerOff()
                 self.state = State.Off
+            elif event == 'refresh':
+                self.c.refresh()
             elif event == 'power':
                 print('Power Off', file=sys.stderr)
                 self.o.disconnect()
@@ -134,6 +137,8 @@ class Octobox:
             if not octo_state.startswith('Printing'):
                 self.p.fan(True)
                 self.state = State.Cooling
+            elif event == 'refresh':
+                self.c.refresh()
             elif event == 'cancel':
                 self.o.cancel()
                 self.c.stop()
@@ -153,6 +158,8 @@ class Octobox:
                 self.o.disconnect()
                 self.powerOff()
                 self.state = State.Off
+            elif event == 'refresh':
+                self.c.refresh()
                 
         tempCold = 0.0
         if self.state == State.Cooling:
