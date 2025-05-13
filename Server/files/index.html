@@ -35,18 +35,25 @@
              if (document.getElementById("webcam").src.includes("jpg")) {
                  let localIP = await fetch("localIP");
                  let localIPText = await localIP.text();
+                 let webcamElt = document.getElementById("webcam");
+                 let scaleFactor = screen.width / 1280;
                  
                  let port = window.location.port;
                  if (port == 58080) {
-                     document.getElementById("webcam").src = "http://jayhan.name:58088/stream";
+                     webcamElt.src = "http://jayhan.name:58088/stream";
+                     webcamElt.style = `width:100%; scale=${scaleFactor};`;
                  } else {
-                     document.getElementById("webcam").src = `http://${localIPText}:8080/stream`;
+                     webcamElt.src = `http://${localIPText}:8080/stream`;
+                     webcamElt.style = `width:100%; scale=${scaleFactor};`;
                  }
              }
          }
 
          async function setupImage() {
-             document.getElementById("webcam").src = "image.jpg?" + new Date().valueOf();
+             let webcamElt = document.getElementById("webcam");
+             let scaleFactor = screen.width / 1280;
+             webcamElt.src = "image.jpg?" + new Date().valueOf();
+             webcamElt.style = `width:100%; scale=${scaleFactor};`;
          }
 
          function waitRefresh() {

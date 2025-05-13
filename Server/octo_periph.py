@@ -6,6 +6,8 @@ from time import sleep
 _GPIO_FLASH = 76
 _GPIO_FAN   = 259
 _GPIO_POWER = 260
+
+RESOLUTION  = '1280x800'
     
 class Peripheral:
     def __init__(self):
@@ -82,7 +84,7 @@ class Camera:
             [
              '/usr/share/octobox/ustreamer',
              '-d',  self._device,
-             '-r', '1280x720',
+             '-r', RESOLUTION,
              '-m', 'MJPEG',
              '--device-timeout', '10',
              '--host=0.0.0.0',
@@ -112,7 +114,7 @@ class Camera:
             [
                 '/usr/bin/fswebcam',
                 '-d', self._device,
-                '-r', '1280x720',
+                '-r', RESOLUTION,
                 '-F', '3', '-S', '2', '--no-banner',
                 '/var/www/html/image.jpg'
             ]
