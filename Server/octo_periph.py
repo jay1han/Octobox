@@ -105,6 +105,7 @@ class Camera:
             print('Stop streamer', file=sys.stderr)
             self._Popen.terminate()
             self._Popen.wait()
+        sleep(1)
         self.start()
 
     def capture(self):
