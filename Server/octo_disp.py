@@ -69,12 +69,14 @@ class Display:
             if self.started is None:
                 if jobInfo.fileTime == 0:
                     jobInfoText = f'<tr><td>File</td><td colspan=3>{jobInfo.filename}</td></tr>'
+                    self.setQuery(jobInfo.filename, None, None)
                 else:
                     eta = (datetime.now() + timedelta(seconds = jobInfo.fileTime)).strftime('%H:%M')
                     jobInfoText = f'<tr><td>File</td><td colspan=3>{jobInfo.filename}</td></tr>'
                     jobInfoText += f'<tr><td>Estimated</td><td>{printTime(jobInfo.fileTime)}</td></tr>'
                     jobInfoText += f'<tr><td>Now</td><td>{datetime.now().strftime("%H:%M")}</td>'
                     jobInfoText += f'<td>ETA</td><td>{eta}</td></tr>'
+                    self.setQuery(jobInfo.filename, None, jobInfo.fileTime)
                        
             else:
                 remainingTime = 0
@@ -97,8 +99,19 @@ class Display:
                 jobInfoText += f'<tr><td>Started</td><td>{self.started.strftime("%H:%M")}</td>'
                 jobInfoText += f'<td>Now</td><td>{self.lastNow}</td>'
                 jobInfoText += f'<td>ETA</td><td>{eta}</td></tr>'
+                self.setQuery(jobInfo.filename, donePercent, remainingTime)
             
         replaceText('/var/www/html/jobInfo', jobInfoText)
+
+    def setQuery(self,
+                 filename: str = None,
+                 completion: float = None,
+                 remaining: int = None):
+        queryInfo = \
+            (f'filename={filename}\n' if filename is not None else '') + \
+            (f'completion={completion:.1}\n' if completion is not None else '') + \
+            (f'remaining={printTime(remaining)}\n' if remaining is not None else '')
+        replaceText('/var/www/html/query', queryInfo)
 
     def clearInfo(self):
         self.setTemps([0.0, 0.0, 0.0, 0.0])

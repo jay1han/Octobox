@@ -116,7 +116,7 @@ The GPI module uses the Socket library to send events to the running Octobox pro
 
 - Actuator
 
-- Temperature sensor(s)
+- Temperature sensor(s): MLX90614
 
 - Separate big fan control from power
 
@@ -124,6 +124,11 @@ The GPI module uses the Socket library to send events to the running Octobox pro
 
 ### Software
 
-- Change webcam resolution
+HTTP GETtable file `http://octo2w.local/info` returns the following information
+in INI format (`key=value`):
 
-- API for PiDi
+| Field       | Type   | Example        |
+|-------------|--------|----------------|
+| filename    | string | `octobox-part` |
+| completion  | float  | `15.6`         |
+| remaining   | HH:MM  | `01:32`        |
