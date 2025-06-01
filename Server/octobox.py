@@ -10,11 +10,6 @@ from octo_disp import Display
 from octo_print import Octoprint
 from octo_socket import Socket
 
-def readCpuTemp():
-    with open('/sys/class/thermal/thermal_zone0/temp', 'r') as temp:
-        cpuTemp = int(temp.read().strip()) / 1000.0
-    return cpuTemp
-
 class State(Enum):
     Off      = 0
     On       = 1
@@ -73,7 +68,7 @@ class Octobox:
         octo_state = self.o.getState()
         event = self.s.read()
         tempExt, tempBed = self.o.getTemps()
-        tempCpu = readCpuTemp()
+        tempCpu = self.p.cpuTemp()
 
         if event != '' or self.octo_state != octo_state:
             print(f'State {self.state}: State "{octo_state}", Event "{event}"', file=sys.stderr)

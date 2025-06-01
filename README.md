@@ -8,22 +8,24 @@ You need to obtain an API key from Octoprint and store it in `api.key` in plain 
 
 ### States
 
-| State    | When                   | Look for               | Change to | Also do                                      |
-|----------|------------------------|------------------------|-----------|----------------------------------------------|
-| Off      | printer is off         | event `power`          | On        | switch Relay ON, start Camera, start timeout |
-|          |                        | event `reboot`         | N/A       | reboot                                       |
-| On       | printer is powering on | Octo is `Operational`  | Idle      |                                              |
-|          |                        | Octo has error         | Off       | switch everything OFF                        |
-|          |                        | Timeout elapsed        | Off       | switch everything OFF                        |
-| Idle     | ready for print        | event `power`          | Off       | switch everything OFF                        |
-|          |                        | event `reboot`         | N/A       | reboot                                       |
-|          |                        | Octo has error         | Off       | switch everything OFF                        |
-|          |                        | Octo is `Printing`     | Printing  |                                              |
-| Printing | print job running      | Octo has error         | Cooling   | start Fan                                    |
-|          |                        | Octo is not `Printing` | Cooling   | start Fan                                    |
-|          |                        | event `cancel`         | Cooling   | cancel Octo job, start Fan                   |
-| Cooling  | print job ended        | Octo has error         | Off       | switch everything OFF                        |
-|          |                        | bed temp < 35C         | Off       | switch everything OFF                        |
+Modified for remote temperature sensor.
+
+| State    | When                   | Look for               | Change to | Also do                                        |
+|----------|------------------------|------------------------|-----------|------------------------------------------------|
+| Off      | printer is off         | event `power`          | On        | switch Relay ON, start Camera, start timeout   |
+|          |                        | event `reboot`         | N/A       | reboot                                         |
+| On       | printer is powering on | Octo is `Operational`  | Idle      |                                                |
+|          |                        | Octo has error         | Off       | switch everything OFF                          |
+|          |                        | Timeout elapsed        | Off       | switch everything OFF                          |
+| Idle     | ready for print        | event `power`          | Off       | switch everything OFF                          |
+|          |                        | event `reboot`         | N/A       | reboot                                         |
+|          |                        | Octo has error         | Off       | switch everything OFF                          |
+|          |                        | Octo is `Printing`     | Printing  |                                                |
+| Printing | print job running      | Octo has error         | Cooling   | switch off Printer, start Fan                  |
+|          |                        | Octo is not `Printing` | Cooling   | switch off Printer, start Fan                  |
+|          |                        | event `cancel`         | Cooling   | cancel Octo job, switch off Printer, start Fan |
+| Cooling  | print job ended        | Octo has error         | Off       | switch everything OFF                          |
+|          |                        | bed temp < 35C         | Off       | switch everything OFF                          |
 
 ### Peripherals
 
@@ -38,6 +40,11 @@ This is used exclusively by the Camera module
 - `fan()` to switch the cooling fan.
 
 - `relay()` to switch the printer.
+
+### Sensor
+
+The MLX90614 allows monitoring ambient and bed temperatures at all times.
+CPU sensor is now in this module.
 
 ### Camera
 
@@ -118,7 +125,11 @@ The GPI module uses the Socket library to send events to the running Octobox pro
 
 - Temperature sensor(s): MLX90614
 
-- Separate big fan control from power
+	- Turn off printer at job's end and turn on cooling fan
+	
+	- Use sensor to monitor bed temperature and turn off cooling fan
+	
+- Recheck install script
 
 - Better lighting for camera
 
@@ -132,3 +143,4 @@ in INI format (`key=value`):
 | filename    | string | `octobox-part` |
 | completion  | float  | `15.6`         |
 | remaining   | HH:MM  | `01:32`        |
+

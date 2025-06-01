@@ -20,6 +20,7 @@ class Peripheral:
         self._relay = 0
         self._relayGpio = GPIO("/dev/gpiochip0", _GPIO_POWER, "out")
         self._relayGpio.write(False)
+        # TODO initialize I2C
         
     def flash(self, state = None) -> int:
         if state is not None:
@@ -48,10 +49,23 @@ class Peripheral:
             self._relayGpio.write(bool(self._relay))
         return self._relay
 
+    def pusher(self, state = None) -> int:
+        pass
+
+    def cpuTemp(self):
+        with open('/sys/class/thermal/thermal_zone0/temp', 'r') as temp:
+            cpuTemp = int(temp.read().strip()) / 1000.0
+        return cpuTemp
+
+    def bedTemp(self):
+        #TODO read I2C
+        return 0.0
+    
     def __del__(self):
         self.flash(0)
         self.fan(0)
         self.relay(0)
+        # TODO release I2C
 
 # ps H -o pid -C stream --no-headers
 class Camera:
