@@ -27,7 +27,7 @@ Modified for remote temperature sensor.
 | Cooling  | print job ended        | Octo has error         | Off       | switch everything OFF                          |
 |          |                        | bed temp < 35C         | Off       | switch everything OFF                          |
 
-### Peripherals
+## Peripherals
 
 All methods take an optional argument to set the value,
 or return the current value if no argument is given.
@@ -58,7 +58,11 @@ When active, ustreamer is available at the URL
 
 - `capture()` captures a still image into `/var/www/html/image.jpg`.
 
-### Display
+### Pusher
+
+The motor is controlled by a TB6612FNG module.
+
+## Display
 
 This actually just updates the data files that are used by the HTML to display the page.
 
@@ -70,7 +74,7 @@ This actually just updates the data files that are used by the HTML to display t
 
 - `jobInfo` contains HTML snippet showing Job information (if any).
 
-### Octo
+## Octoprint
 
 This uses Octoprint's REST API to interact with it.
 You need to obtain an API key from Octoprint and store it in `api.key` in plain text.
@@ -79,13 +83,13 @@ You need to obtain an API key from Octoprint and store it in `api.key` in plain 
 
 - Requests : `connection` request to connect or disconnect the printer.
 
-### Socket library
+## Socket library
 
 The file `/usr/share/octobox/socket` is used to pass events.
 A user must first `lock()` it, then `read()` to or `write()` from it, 
 then `free()` it.
 
-### CGI
+## CGI
 
 The GPI module uses the Socket library to send events to the running Octobox process.
 
@@ -97,7 +101,7 @@ The GPI module uses the Socket library to send events to the running Octobox pro
 
 - `refresh` captures a new image.
 
-## Document
+## Documents
 
 - `Orange.pptx` shows the cabling of the Opi Zero 2W.
 
@@ -116,6 +120,54 @@ The GPI module uses the Socket library to send events to the running Octobox pro
     - `Touch` : housing for the touch sensor (ambient light)
 
     - `horiz2` : horizontal feeder for filament spool
+	
+### OrangePi pinout
+
+| Number | GPIO | Alt         | Value      |
+|--------|------|-------------|------------|
+|        | 3.3V |             | Pusher VCC |
+| 264    | PI8  | SDA.1       |            |
+| 263    | PI7  | SCL.1       |            |
+| 269    | PI13 | PWM3 TXD.4  | Pusher PWM |
+|        | GND  |             |            |
+| 226    | PH2  | TXD.5       |            |
+| 227    | PH3  | RXD.5       |            |
+| 261    | PI5  | SCL.0 TXD.2 | I2C SCL    |
+|        | 3.3V |             | I2C VCC    |
+| 231    | PH7  | MOSI.1      |            |
+| 232    | PH8  | MISO.1      |            |
+| 230    | PH6  | SCLK.1      |            |
+|        | GND  |             |            |
+| 266    | PI10 | SDA.2 RXD.3 |            |
+| 256    | PI00 |             | Pusher EN  |
+| 271    | PI15 |             |            |
+| 268    | PI12 | PWM2        | CPU Fan    |
+| 258    | PI02 |             |            |
+| 272    | PI16 |             |            |
+|        | GND  |             |            |
+
+| Number | GPIO | Alt         | Value     |
+|--------|------|-------------|-----------|
+|        | 5V   |             |           |
+|        | 5V   |             | Power 5V  |
+|        | GND  |             | Power GND |
+| 224    | PH0  | TXD.0       |           |
+| 225    | PH1  | RXD.0       |           |
+| 257    | PI01 |             |           |
+|        | GND  |             |           |
+| 270    | PI14 | PWM4 RXD.4  |           |
+| 228    | PH04 |             |           |
+|        | GND  |             | I2C GND   |
+| 262    | PI6  | SDA.0 RXD.2 | I2C SDA   |
+| 229    | PH5  | CE.0        |           |
+| 233    | PH9  | CE.1        | Pusher 1  |
+| 265    | PI9  | SCL.2 TXD.2 | Pusher 2  |
+|        | GND  |             |           |
+| 267    | PI11 | PWM1        | Flash     |
+|        | GND  |             |           |
+| 76     | PC12 |             | Relay     |
+| 260    | PI04 |             | Fan120    |
+| 259    | PI03 |             | Fan80     |
 
 ## TODO
 
