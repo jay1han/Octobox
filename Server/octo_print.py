@@ -85,7 +85,7 @@ class Octoprint:
     def getTemp(self):
         printer = self.query('printer')
         if printer is None:
-            return 0, 0
+            return 0.0
         else:
             tempExt = 0
             if printer['temperature'].get('tool0') is not None \

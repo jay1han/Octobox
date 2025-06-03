@@ -45,9 +45,9 @@ class Peripheral:
         self._pusherPWM.frequency = 1000
         self._pusherPWM.duty_cycle = 0.5
         self.pusher(False, wait=True)
-        
-        self._tempI2C = I2C(_I2C_TEMP)
 
+        self._tempI2C = I2C(_I2C_TEMP)
+        
         self._tAmbient = 0.0
         
     def flash(self, state: bool):
@@ -60,28 +60,40 @@ class Peripheral:
         self._powerGpio.write(state)
 
     def cooler(self, state: bool):
-        self._powerGpio.write(state)
+        self._coolerGpio.write(state)
 
     # TODO pusher extend and retract
     def pusher(self, state: bool, wait: bool = False):
         pass
 
     def temps(self) -> (float, float, float):
-        raw = bytearray(3)
-        msg = self._tempI2C.transfer(_TEMP_ADDR, [I2C.Message([_REG_TOBJ1]), I2C.Message(raw, True)])
-        tObject = float(data) * 0.02 - 273.15
-        
-        msg = self._tempI2C.transfer(_TEMP_ADDR, [I2C.Message([_REG_TA]), I2C.Message(raw, True)])
-        data = raw[0] | (raw[1] >> 8)
-        tAmbient = float(data) * 0.02 - 273.15
-        self._tAmbient = tAmbient
-        
         with open('/sys/class/thermal/thermal_zone0/temp', 'r') as temp:
             tCpu = int(temp.read().strip()) / 1000.0
-        if tCpu > tAmbient + 25.0 or tCpu > 55.0:
+
+        tObject = 0.0
+        tAmbient = 0.0
+        raw = bytearray(3)
+        try:
+            msg = self._tempI2C.transfer(_TEMP_ADDR, [I2C.Message([_REG_TOBJ1]), I2C.Message(raw, True)])
+        except:
+            pass
+        data = raw[0] | (raw[1] >> 8)
+        tObject = float(data) * 0.02 - 273.15
+
+        try:
+            msg = self._tempI2C.transfer(_TEMP_ADDR, [I2C.Message([_REG_TA]), I2C.Message(raw, True)])
+        except:
+            pass
+        data = raw[0] | (raw[1] >> 8)
+        tAmbient = float(data) * 0.02 - 273.15
+        
+        self._tAmbient = tAmbient
+        
+        if tCpu > 55.0 or (tAmbient > 0.0 and tCpu > tAmbient + 25.0):
             self._cpuGpio.write(True)
-        elif tCpu < tAmbient + 15.0:
+        elif tCpu < 35.0 or (tAmbient > 0.0 and tCpu < tAmbient + 15.0):
             self._cpuGpio.write(False)
+            
         return tCpu, tObject, tAmbient
 
     def __del__(self):
@@ -102,8 +114,9 @@ class Peripheral:
         self._pusher1.close()
         self._pusher2.close()
         self._pusherPWM.close()
-        
-        self._tempI2C.close()
+
+        if self._tempI2C is not None:
+            self._tempI2C.close()
 
 # ps H -o pid -C stream --no-headers
 class Camera:
