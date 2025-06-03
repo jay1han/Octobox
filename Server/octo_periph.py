@@ -1,6 +1,6 @@
 from periphery import GPIO, I2C, PWM
 import signal
-import subprocess, os, re, sys
+import subprocess, os, re, sys, shutil
 from time import sleep
 
 _GPIO_FLASH  = 267
@@ -91,7 +91,7 @@ class Peripheral:
         
         if tCpu > 55.0 or (tAmbient > 0.0 and tCpu > tAmbient + 20.0):
             self._cpuGpio.write(True)
-        elif tCpu < 35.0 or (tAmbient > 0.0 and tCpu < tAmbient + 10.0):
+        elif tCpu < 40.0 or (tAmbient > 0.0 and tCpu < tAmbient + 10.0):
             self._cpuGpio.write(False)
             
         return tCpu, tObject, tAmbient
@@ -146,7 +146,7 @@ class Camera:
             self.capture()
         else:
             print('No camera', file=sys.stderr)
-            os.rename('/usr/share/octobox/nocamera.jpg', '/var/www/html/image.jpg')
+            shutil.copyfile('/usr/share/octobox/nocamera.jpg', '/var/www/html/image.jpg')
         
     def start(self):
         if self._device is not None:

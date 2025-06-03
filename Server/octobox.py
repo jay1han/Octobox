@@ -51,14 +51,17 @@ class Octobox:
 
     def powerOff(self):
         print('Power Off', file=sys.stderr)
-        self.p.relay(False)
         self.p.fan(False)
+        self.p.cooler(False)
+        self.p.pusher(False)
         self.c.stop()
+        self.p.power(False)
 
     def powerOn(self):
         print('Power On', file=sys.stderr)
         self.d.clearInfo()
-        self.p.relay(True)
+        self.p.power(True)
+        self.p.fan(True)
 
     def reboot(self):
         print('Reboot', file=sys.stderr)
@@ -82,10 +85,10 @@ class Octobox:
                 self.c.capture()
             elif event == 'power':
                 self.powerOn()
+                self.c.start()
                 sleep(1)
                 self.o.connect()
                 self.setTimeout(15)
-                self.c.start()
                 self.state = State.On
             elif event == 'reboot':
                 self.powerOff()
@@ -130,19 +133,17 @@ class Octobox:
 
         elif self.state == State.Printing:
             if not octo_state.startswith('Printing'):
-                self.p.fan(True)
                 self.state = State.Cooling
             elif event == 'refresh':
                 self.c.refresh()
             elif event == 'cancel':
                 self.o.cancel()
-                self.c.stop()
-                self.c.capture()
-                self.p.fan(True)
                 self.state = State.Cooling
             if self.state == State.Cooling:
                 print('Print ended', file=sys.stderr)
                 self.d.end()
+                self.p.pusher(True)
+                self.p.cooler(True)
 
         elif self.state == State.Cooling:
             if octo_state.startswith('Error') \

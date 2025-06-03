@@ -11,6 +11,7 @@ cp -pv ustreamer/ustreamer.bin /usr/share/octobox/ustreamer
 touch /usr/share/octobox/socket
 
 cp -v files/index.html /var/www/html
+cp -v files/nocamera.jpg /var/www/html
 cp -v files/localIP /var/www/html
 
 cp -pv octo_cgi.py /var/www/bin/
