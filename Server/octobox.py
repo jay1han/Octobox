@@ -67,8 +67,8 @@ class Octobox:
     def loop(self):
         octo_state = self.o.getState()
         event = self.s.read()
-        tempExt, tempBed = self.o.getTemps()
-        tempCpu = self.p.cpuTemp()
+        tempExt = self.o.getTemp()
+        tempCpu, tempBed, tempAmb = self.p.temps()
 
         if event != '' or self.octo_state != octo_state:
             print(f'State {self.state}: State "{octo_state}", Event "{event}"', file=sys.stderr)
@@ -147,7 +147,7 @@ class Octobox:
         elif self.state == State.Cooling:
             if octo_state.startswith('Error') \
               or octo_state.startswith('Offline') \
-              or tempBed < 35.0 \
+              or tempBed < 35.0 or tempBed < (tempAmb + 3.0)\
               or event == 'power':
                 print('Power Off', file=sys.stderr)
                 self.o.disconnect()
@@ -175,6 +175,8 @@ class Octobox:
         elif self.state == State.Cooling:
             self.d.setState('Cooling')
             self.d.setElapsed(self.elapsed)
+
+    sleep(0.1)
             
 octobox = Octobox()
 

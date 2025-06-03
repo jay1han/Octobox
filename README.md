@@ -10,22 +10,23 @@ You need to obtain an API key from Octoprint and store it in `api.key` in plain 
 
 Modified for remote temperature sensor.
 
-| State    | When                   | Look for               | Change to | Also do                                        |
-|----------|------------------------|------------------------|-----------|------------------------------------------------|
-| Off      | printer is off         | event `power`          | On        | switch Relay ON, start Camera, start timeout   |
-|          |                        | event `reboot`         | N/A       | reboot                                         |
-| On       | printer is powering on | Octo is `Operational`  | Idle      |                                                |
-|          |                        | Octo has error         | Off       | switch everything OFF                          |
-|          |                        | Timeout elapsed        | Off       | switch everything OFF                          |
-| Idle     | ready for print        | event `power`          | Off       | switch everything OFF                          |
-|          |                        | event `reboot`         | N/A       | reboot                                         |
-|          |                        | Octo has error         | Off       | switch everything OFF                          |
-|          |                        | Octo is `Printing`     | Printing  |                                                |
-| Printing | print job running      | Octo has error         | Cooling   | switch off Printer, start Fan                  |
-|          |                        | Octo is not `Printing` | Cooling   | switch off Printer, start Fan                  |
-|          |                        | event `cancel`         | Cooling   | cancel Octo job, switch off Printer, start Fan |
-| Cooling  | print job ended        | Octo has error         | Off       | switch everything OFF                          |
-|          |                        | bed temp < 35C         | Off       | switch everything OFF                          |
+| State     | When                   | Look for               | Change to | Also do                                                      |
+|-----------|------------------------|------------------------|-----------|--------------------------------------------------------------|
+| (Initial) | starting Octobox       |                        | Off       | retract Pusher, capture Camera, switch everything OFF        |
+| Off       | printer is off         | event `power`          | On        | switch Relay ON, start Camera, start timeout                 |
+|           |                        | event `reboot`         | N/A       | reboot                                                       |
+| On        | printer is powering on | Octo is `Operational`  | Idle      |                                                              |
+|           |                        | Octo has error         | Off       | switch everything OFF                                        |
+|           |                        | Timeout elapsed        | Off       | switch everything OFF                                        |
+| Idle      | ready for print        | event `power`          | Off       | switch everything OFF                                        |
+|           |                        | event `reboot`         | N/A       | reboot                                                       |
+|           |                        | Octo has error         | Off       | switch everything OFF                                        |
+|           |                        | Octo is `Printing`     | Printing  |                                                              |
+| Printing  | print job running      | Octo has error         | Cooling   | switch off Printer, start Cooler, extend Pusher              |
+|           |                        | Octo is not `Printing` | Cooling   | switch off Printer, start Cooler, extend Pusher              |
+|           |                        | event `cancel`         | Cooling   | cancel Octo job, switch off Printer, start Cooler and Pusher |
+| Cooling   | print job ended        | Octo has error         | Off       | retract Pusher, switch everything OFF                        |
+|           |                        | bed temp < 35C         | Off       | retract Pusher, switch everything OFF                        |
 
 ## Peripherals
 
