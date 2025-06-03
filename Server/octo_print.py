@@ -43,7 +43,7 @@ class Octoprint:
         try:
             with urlopen(f'http://localhost:5000/api/{command}?apikey={APIKEY}') as jobapi:
                 return json.loads(jobapi.read())
-        except OSError:
+        except:
             return None
 
     @staticmethod
@@ -56,7 +56,7 @@ class Octoprint:
                     )
         try:
             urlopen(r, bytes(data, 'ascii'))
-        except OSError:
+        except:
             pass
 
     def disconnect(self):
