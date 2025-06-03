@@ -89,9 +89,9 @@ class Peripheral:
         
         self._tAmbient = tAmbient
         
-        if tCpu > 55.0 or (tAmbient > 0.0 and tCpu > tAmbient + 25.0):
+        if tCpu > 55.0 or (tAmbient > 0.0 and tCpu > tAmbient + 20.0):
             self._cpuGpio.write(True)
-        elif tCpu < 35.0 or (tAmbient > 0.0 and tCpu < tAmbient + 15.0):
+        elif tCpu < 35.0 or (tAmbient > 0.0 and tCpu < tAmbient + 10.0):
             self._cpuGpio.write(False)
             
         return tCpu, tObject, tAmbient
@@ -139,24 +139,30 @@ class Camera:
             if re.search('Camera', line):
                 usb_device = line_no
 
-        self._device = list_devices[usb_device].strip()
-        print(f'Camera found on {self._device}', file=sys.stderr)
-        self.capture()
+        self._device = None
+        if usb_device > 0:
+            self._device = list_devices[usb_device].strip()
+            print(f'Camera found on {self._device}', file=sys.stderr)
+            self.capture()
+        else:
+            print('No camera', file=sys.stderr)
+            os.rename('/usr/share/octobox/nocamera.jpg', '/var/www/html/image.jpg')
         
     def start(self):
-        self._peripheral.flash(True)
-        self._Popen = subprocess.Popen(
-            [
-             '/usr/share/octobox/ustreamer',
-             '-d',  self._device,
-             '-r', RESOLUTION,
-             '-m', 'MJPEG',
-             '--device-timeout', '10',
-             '--host=0.0.0.0',
-             '-l'
-             ]
-        )
-        print(f'Started webcam process {self._Popen.pid}', file=sys.stderr)
+        if self._device is not None:
+            self._peripheral.flash(True)
+            self._Popen = subprocess.Popen(
+                [
+                 '/usr/share/octobox/ustreamer',
+                 '-d',  self._device,
+                 '-r', RESOLUTION,
+                 '-m', 'MJPEG',
+                 '--device-timeout', '10',
+                 '--host=0.0.0.0',
+                 '-l'
+                 ]
+            )
+            print(f'Started webcam process {self._Popen.pid}', file=sys.stderr)
 
     def stop(self):
         if self._Popen is not None:
@@ -170,22 +176,23 @@ class Camera:
             print('Stop streamer', file=sys.stderr)
             self._Popen.terminate()
             self._Popen.wait()
-        sleep(1)
+            sleep(1)
         self.start()
 
     def capture(self):
-        print('Capture image', file=sys.stderr)
-        self._peripheral.flash(True)
-        subprocess.run(
-            [
-                '/usr/bin/fswebcam',
-                '-d', self._device,
-                '-r', RESOLUTION,
-                '-F', '3', '-S', '2', '--no-banner',
-                '/var/www/html/image.jpg'
-            ]
-        )
-        self._peripheral.flash(False)
+        if self._device is not None:
+            print('Capture image', file=sys.stderr)
+            self._peripheral.flash(True)
+            subprocess.run(
+                [
+                    '/usr/bin/fswebcam',
+                    '-d', self._device,
+                    '-r', RESOLUTION,
+                    '-F', '3', '-S', '2', '--no-banner',
+                    '/var/www/html/image.jpg'
+                ]
+            )
+            self._peripheral.flash(False)
 
     def __del__(self):
         self.stop()
