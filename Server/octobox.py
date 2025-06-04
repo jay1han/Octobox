@@ -51,10 +51,10 @@ class Octobox:
 
     def powerOff(self):
         print('Power Off', file=sys.stderr)
+        self.c.stop()
         self.p.fan(False)
         self.p.cooler(False)
         self.p.pusher(False)
-        self.c.stop()
         self.p.power(False)
 
     def powerOn(self):
@@ -65,7 +65,10 @@ class Octobox:
 
     def reboot(self):
         print('Reboot', file=sys.stderr)
-        ps = subprocess.run(['/usr/sbin/reboot', 'now'])
+        self.powerOff()
+        self.p.stop()
+        ps = subprocess.run(['/usr/sbin/systemctl', 'reboot'])
+        sys.exit(0)
     
     def loop(self):
         octo_state = self.o.getState()
@@ -91,7 +94,6 @@ class Octobox:
                 self.setTimeout(15)
                 self.state = State.On
             elif event == 'reboot':
-                self.powerOff()
                 self.reboot()
 
         elif self.state == State.On:
@@ -128,7 +130,6 @@ class Octobox:
                 self.powerOff()
                 self.state = State.Off
             elif event == 'reboot':
-                self.powerOff()
                 self.reboot()
 
         elif self.state == State.Printing:
@@ -139,6 +140,7 @@ class Octobox:
             elif event == 'cancel':
                 self.o.cancel()
                 self.state = State.Cooling
+                
             if self.state == State.Cooling:
                 print('Print ended', file=sys.stderr)
                 self.d.end()
@@ -147,20 +149,26 @@ class Octobox:
 
         elif self.state == State.Cooling:
             if octo_state.startswith('Error') \
-              or octo_state.startswith('Offline') \
-              or tempBed < 35.0 or tempBed < (tempAmb + 3.0)\
-              or event == 'power':
+              or octo_state.startswith('Offline'):
+                print('Error', file=sys.stderr)
+                self.state = State.Off
+            elif tempBed < 35.0 or tempBed < (tempAmb + 3.0):
+                print('Cold', file=sys.stderr)
+                self.state = State.Off
+            elif event == 'power':
                 print('Power Off', file=sys.stderr)
-                self.o.disconnect()
-                self.powerOff()
                 self.state = State.Off
             elif event == 'refresh':
                 self.c.refresh()
                 
+            if self.state == State.Off:
+                self.o.disconnect()
+                self.powerOff()
+                
         tempCold = 0.0
         if self.state == State.Cooling:
             tempCold = 35.0
-        self.d.setTemps((tempExt, tempBed, tempCpu, tempCold))
+        self.d.setTemps((tempAmb, tempExt, tempBed, tempCpu, tempCold))
         
         if self.state == State.Off:
             self.d.setState('Printer Off')

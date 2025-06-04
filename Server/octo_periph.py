@@ -75,15 +75,15 @@ class Peripheral:
         raw = bytearray(3)
         try:
             msg = self._tempI2C.transfer(_TEMP_ADDR, [I2C.Message([_REG_TOBJ1]), I2C.Message(raw, True)])
-        except:
-            pass
+        except Exception as e:
+            print(e, file=sys.stderr)
         data = raw[0] | (raw[1] >> 8)
         tObject = float(data) * 0.02 - 273.15
 
         try:
             msg = self._tempI2C.transfer(_TEMP_ADDR, [I2C.Message([_REG_TA]), I2C.Message(raw, True)])
-        except:
-            pass
+        except Exception as e:
+            print(e, file=sys.stderr)
         data = raw[0] | (raw[1] >> 8)
         tAmbient = float(data) * 0.02 - 273.15
         
@@ -96,7 +96,7 @@ class Peripheral:
             
         return tCpu, tObject, tAmbient
 
-    def __del__(self):
+    def stop(self):
         self._flashGpio.write(False)
         self._flashGpio.close()
         self._coolerGpio.write(False)
@@ -117,6 +117,9 @@ class Peripheral:
 
         if self._tempI2C is not None:
             self._tempI2C.close()
+
+    def __del__(self):
+        self.stop()
 
 # ps H -o pid -C stream --no-headers
 class Camera:
