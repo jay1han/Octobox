@@ -128,51 +128,51 @@ The GPI module uses the Socket library to send events to the running Octobox pro
 	
 ### OrangePi pinout
 
-| Number | GPIO | Alt         | Value      |
-|--------|------|-------------|------------|
-|        | 3.3V |             | Pusher VCC |
-| 264    | PI8  | SDA.1       |            |
-| 263    | PI7  | SCL.1       |            |
-| 269    | PI13 | PWM3 TXD.4  | Pusher PWM |
-|        | GND  |             |            |
-| 226    | PH2  | TXD.5       |            |
-| 227    | PH3  | RXD.5       |            |
-| 261    | PI5  | SCL.0 TXD.2 | I2C SCL    |
-|        | 3.3V |             | I2C VCC    |
-| 231    | PH7  | MOSI.1      |            |
-| 232    | PH8  | MISO.1      |            |
-| 230    | PH6  | SCLK.1      |            |
-|        | GND  |             |            |
-| 266    | PI10 | SDA.2 RXD.3 |            |
-| 256    | PI00 |             | Pusher EN  |
-| 271    | PI15 |             |            |
-| 268    | PI12 | PWM2        | CPU Fan    |
-| 258    | PI02 |             |            |
-| 272    | PI16 |             |            |
-|        | GND  |             |            |
+| Number | GPIO | Alt         | Value      | Color  |
+|--------|------|-------------|------------|--------|
+|        | 3.3V |             | Pusher VCC | Orange |
+| 264    | PI8  | SDA.1       |            |        |
+| 263    | PI7  | SCL.1       |            |        |
+| 269    | PI13 | PWM3 TXD.4  | Pusher PWM | Green  |
+|        | GND  |             | Pusher GND | Black  |
+| 226    | PH2  | TXD.5       |            |        |
+| 227    | PH3  | RXD.5       |            |        |
+| 261    | PI5  | SCL.0 TXD.2 | I2C SCL    | Yellow |
+|        | 3.3V |             | I2C VCC    | Orange |
+| 231    | PH7  | MOSI.1      |            |        |
+| 232    | PH8  | MISO.1      |            |        |
+| 230    | PH6  | SCLK.1      |            |        |
+|        | GND  |             |            |        |
+| 266    | PI10 | SDA.2 RXD.3 |            |        |
+| 256    | PI00 |             | Pusher EN  | Maroon |
+| 271    | PI15 |             |            |        |
+| 268    | PI12 | PWM2        | CPU Fan    | Green  |
+| 258    | PI02 |             |            |        |
+| 272    | PI16 |             |            |        |
+|        | GND  |             |            |        |
 
-| Number | GPIO | Alt         | Value     |
-|--------|------|-------------|-----------|
-|        | 5V   |             |           |
-|        | 5V   |             | Power 5V  |
-|        | GND  |             | Power GND |
-| 224    | PH0  | TXD.0       |           |
-| 225    | PH1  | RXD.0       |           |
-| 257    | PI01 |             |           |
-|        | GND  |             |           |
-| 270    | PI14 | PWM4 RXD.4  |           |
-| 228    | PH04 |             |           |
-|        | GND  |             | I2C GND   |
-| 262    | PI6  | SDA.0 RXD.2 | I2C SDA   |
-| 229    | PH5  | CE.0        |           |
-| 233    | PH9  | CE.1        | Pusher 1  |
-| 265    | PI9  | SCL.2 TXD.2 | Pusher 2  |
-|        | GND  |             |           |
-| 267    | PI11 | PWM1        | Flash     |
-|        | GND  |             |           |
-| 76     | PC12 |             | Relay     |
-| 260    | PI04 |             | Fan120    |
-| 259    | PI03 |             | Fan80     |
+| Number | GPIO | Alt         | Value     |        |
+|--------|------|-------------|-----------|--------|
+|        | 5V   |             |           |        |
+|        | 5V   |             | Power 5V  | Red    |
+|        | GND  |             | Power GND | Black  |
+| 224    | PH0  | TXD.0       |           |        |
+| 225    | PH1  | RXD.0       |           |        |
+| 257    | PI01 |             |           |        |
+|        | GND  |             |           |        |
+| 270    | PI14 | PWM4 RXD.4  |           |        |
+| 228    | PH04 |             |           |        |
+|        | GND  |             | I2C GND   | Violet |
+| 262    | PI6  | SDA.0 RXD.2 | I2C SDA   | Cream  |
+| 229    | PH5  | CE.0        |           |        |
+| 233    | PH9  | CE.1        | Pusher 1  | Blue   |
+| 265    | PI9  | SCL.2 TXD.2 | Pusher 2  | Violet |
+|        | GND  |             |           |        |
+| 267    | PI11 | PWM1        | Flash     | Grey   |
+|        | GND  |             |           |        |
+| 76     | PC12 |             | Relay     | Cream  |
+| 260    | PI04 |             | Fan120    | Blue   |
+| 259    | PI03 |             | Fan80     | Violet |
 
 ## TODO
 
