@@ -1,71 +1,122 @@
-from periphery import GPIO
+from periphery import GPIO, I2C, PWM
 import signal
-import subprocess, os, re, sys
+import subprocess, os, re, sys, shutil
 from time import sleep
 
-_GPIO_FLASH = 76
-_GPIO_FAN   = 259
-_GPIO_POWER = 260
+_GPIO_FLASH  = 267
+_GPIO_COOLER = 259
+_GPIO_POWER  = 76
+_GPIO_CPU    = 268
+_GPIO_FAN    = 260
+_GPIO_PUSHER = 256     # low active
+_GPIO_A1     = 233
+_GPIO_A2     = 265
 
-RESOLUTION  = '1280x800'
+_PWM_PUSHER  = 3
+
+_I2C_TEMP    = "/dev/i2c-0"
+_TEMP_ADDR   = 0x5A
+_REG_TOBJ1   = 0x07
+_REG_TA      = 0x06
+
+RESOLUTION   = '1280x800'
     
 class Peripheral:
     def __init__(self):
-        self._flash = 0
         self._flashGpio = GPIO("/dev/gpiochip0", _GPIO_FLASH, "out")
         self._flashGpio.write(False)
-        self._fan = 0
+        self._coolerGpio = GPIO("/dev/gpiochip0", _GPIO_COOLER, "out")
+        self._coolerGpio.write(False)
         self._fanGpio = GPIO("/dev/gpiochip0", _GPIO_FAN, "out")
         self._fanGpio.write(False)
-        self._relay = 0
-        self._relayGpio = GPIO("/dev/gpiochip0", _GPIO_POWER, "out")
-        self._relayGpio.write(False)
-        # TODO initialize I2C
+        self._powerGpio = GPIO("/dev/gpiochip0", _GPIO_POWER, "out")
+        self._powerGpio.write(False)
         
-    def flash(self, state = None) -> int:
-        if state is not None:
-            if state == -1:
-                self._flash = 1 - self._flash
-            else:
-                self._flash = state
-            self._flashGpio.write(bool(self._flash))
-        return self._flash
+        self._cpuGpio = GPIO("/dev/gpiochip0", _GPIO_CPU, "out")
+        self._cpuGpio.write(False)
+        
+        self._pusherEnx = GPIO("/dev/gpiochip0", _GPIO_PUSHER, "out")
+        self._pusherEnx.write(True)
+        self._pusher1 = GPIO("/dev/gpiochip0", _GPIO_A1, "out")
+        self._pusher1.write(False)
+        self._pusher2 = GPIO("/dev/gpiochip0", _GPIO_A2, "out")
+        self._pusher2.write(False)
+        self._pusherPWM = PWM(0, _PWM_PUSHER)
+        self._pusherPWM.frequency = 1000
+        self._pusherPWM.duty_cycle = 0.5
+        self.pusher(False, wait=True)
+
+        self._tempI2C = I2C(_I2C_TEMP)
+        
+        self._tAmbient = 0.0
+        
+    def flash(self, state: bool):
+        self._flashGpio.write(state)
     
-    def fan(self, state = None) -> int:
-        if state is not None:
-            if state == -1:
-                self._fan = 1 - self._fan
-            else:
-                self._fan = state
-            self._fanGpio.write(bool(self._fan))
-        return self._fan
+    def fan(self, state: bool):
+        self._fanGpio.write(state)
 
-    def relay(self, state = None) -> int:
-        if state is not None:
-            if state == -1:
-                self._relay = 1 - self._relay
-            else:
-                self._relay = state
-            self._relayGpio.write(bool(self._relay))
-        return self._relay
+    def power(self, state:bool):
+        self._powerGpio.write(state)
 
-    def pusher(self, state = None) -> int:
+    def cooler(self, state: bool):
+        self._coolerGpio.write(state)
+
+    # TODO pusher extend and retract
+    def pusher(self, state: bool, wait: bool = False):
         pass
 
-    def cpuTemp(self):
+    def temps(self) -> (float, float, float):
         with open('/sys/class/thermal/thermal_zone0/temp', 'r') as temp:
-            cpuTemp = int(temp.read().strip()) / 1000.0
-        return cpuTemp
+            tCpu = int(temp.read().strip()) / 1000.0
 
-    def bedTemp(self):
-        #TODO read I2C
-        return 0.0
-    
+        tObject = 0.0
+        tAmbient = 0.0
+        raw = bytearray(3)
+        try:
+            msg = self._tempI2C.transfer(_TEMP_ADDR, [I2C.Message([_REG_TOBJ1]), I2C.Message(raw, True)])
+        except:
+            pass
+        data = raw[0] | (raw[1] >> 8)
+        tObject = float(data) * 0.02 - 273.15
+
+        try:
+            msg = self._tempI2C.transfer(_TEMP_ADDR, [I2C.Message([_REG_TA]), I2C.Message(raw, True)])
+        except:
+            pass
+        data = raw[0] | (raw[1] >> 8)
+        tAmbient = float(data) * 0.02 - 273.15
+        
+        self._tAmbient = tAmbient
+        
+        if tCpu > 55.0 or (tAmbient > 0.0 and tCpu > tAmbient + 20.0):
+            self._cpuGpio.write(True)
+        elif tCpu < 40.0 or (tAmbient > 0.0 and tCpu < tAmbient + 10.0):
+            self._cpuGpio.write(False)
+            
+        return tCpu, tObject, tAmbient
+
     def __del__(self):
-        self.flash(0)
-        self.fan(0)
-        self.relay(0)
-        # TODO release I2C
+        self._flashGpio.write(False)
+        self._flashGpio.close()
+        self._coolerGpio.write(False)
+        self._coolerGpio.close()
+        self._fanGpio.write(False)
+        self._fanGpio.close()
+        self._powerGpio.write(False)
+        self._powerGpio.close()
+        
+        self._cpuGpio.write(False)
+        self._cpuGpio.close()
+        
+        self.pusher(False, wait=True)
+        self._pusherEnx.close()
+        self._pusher1.close()
+        self._pusher2.close()
+        self._pusherPWM.close()
+
+        if self._tempI2C is not None:
+            self._tempI2C.close()
 
 # ps H -o pid -C stream --no-headers
 class Camera:
@@ -88,24 +139,30 @@ class Camera:
             if re.search('Camera', line):
                 usb_device = line_no
 
-        self._device = list_devices[usb_device].strip()
-        print(f'Camera found on {self._device}', file=sys.stderr)
-        self.capture()
+        self._device = None
+        if usb_device > 0:
+            self._device = list_devices[usb_device].strip()
+            print(f'Camera found on {self._device}', file=sys.stderr)
+            self.capture()
+        else:
+            print('No camera', file=sys.stderr)
+            shutil.copyfile('/usr/share/octobox/nocamera.jpg', '/var/www/html/image.jpg')
         
     def start(self):
-        self._peripheral.flash(1)
-        self._Popen = subprocess.Popen(
-            [
-             '/usr/share/octobox/ustreamer',
-             '-d',  self._device,
-             '-r', RESOLUTION,
-             '-m', 'MJPEG',
-             '--device-timeout', '10',
-             '--host=0.0.0.0',
-             '-l'
-             ]
-        )
-        print(f'Started webcam process {self._Popen.pid}', file=sys.stderr)
+        if self._device is not None:
+            self._peripheral.flash(True)
+            self._Popen = subprocess.Popen(
+                [
+                 '/usr/share/octobox/ustreamer',
+                 '-d',  self._device,
+                 '-r', RESOLUTION,
+                 '-m', 'MJPEG',
+                 '--device-timeout', '10',
+                 '--host=0.0.0.0',
+                 '-l'
+                 ]
+            )
+            print(f'Started webcam process {self._Popen.pid}', file=sys.stderr)
 
     def stop(self):
         if self._Popen is not None:
@@ -119,22 +176,23 @@ class Camera:
             print('Stop streamer', file=sys.stderr)
             self._Popen.terminate()
             self._Popen.wait()
-        sleep(1)
+            sleep(1)
         self.start()
 
     def capture(self):
-        print('Capture image', file=sys.stderr)
-        self._peripheral.flash(1)
-        subprocess.run(
-            [
-                '/usr/bin/fswebcam',
-                '-d', self._device,
-                '-r', RESOLUTION,
-                '-F', '3', '-S', '2', '--no-banner',
-                '/var/www/html/image.jpg'
-            ]
-        )
-        self._peripheral.flash(0)
+        if self._device is not None:
+            print('Capture image', file=sys.stderr)
+            self._peripheral.flash(True)
+            subprocess.run(
+                [
+                    '/usr/bin/fswebcam',
+                    '-d', self._device,
+                    '-r', RESOLUTION,
+                    '-F', '3', '-S', '2', '--no-banner',
+                    '/var/www/html/image.jpg'
+                ]
+            )
+            self._peripheral.flash(False)
 
     def __del__(self):
         self.stop()
