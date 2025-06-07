@@ -1,7 +1,7 @@
-from periphery import GPIO, I2C, PWM
-import signal
-import subprocess, os, re, sys, shutil
+import subprocess, os, re, sys, shutil, threading, signal
 from time import sleep
+from datetime import datetime, timedelta
+from periphery import GPIO, I2C, PWM
 
 _GPIO_FLASH  = 76
 _GPIO_COOLER = 259
@@ -35,8 +35,8 @@ class Peripheral:
         self._cpuGpio = GPIO("/dev/gpiochip0", _GPIO_CPU, "out")
         self._cpuGpio.write(False)
         
-        self._pusherEnx = GPIO("/dev/gpiochip0", _GPIO_PUSHER, "out")
-        self._pusherEnx.write(True)
+        self._pusherEn = GPIO("/dev/gpiochip0", _GPIO_PUSHER, "out")
+        self._pusherEn.write(False)
         self._pusher1 = GPIO("/dev/gpiochip0", _GPIO_A1, "out")
         self._pusher1.write(False)
         self._pusher2 = GPIO("/dev/gpiochip0", _GPIO_A2, "out")
@@ -44,7 +44,10 @@ class Peripheral:
         self._pusherPWM = PWM(0, _PWM_PUSHER)
         self._pusherPWM.frequency = 1000
         self._pusherPWM.duty_cycle = 0.5
-        self.pusher(False, wait=True)
+        self._pushed = True
+        self._thread = None
+        self._pushEvent = threading.Event()
+        self.pusher(False)
 
         self._tempI2C = I2C(_I2C_TEMP)
         
@@ -62,9 +65,34 @@ class Peripheral:
     def cooler(self, state: bool):
         self._coolerGpio.write(state)
 
-    # TODO pusher extend and retract
+    def pushing(self, state: bool):
+        timeout = datetime.now() + timedelta(seconds = 15)
+        self._pushed = state
+        self._pusherPWM.enable()
+        self._pusherEn.write(False)
+        self._pusher1.write(state)
+        self._pusher2.write(not state)
+        self._pusherEn.write(True)
+        while datetime.now() < timeout and not self._pushEvent.is_set():
+            sleep(0.5)
+        self._pusherEn.write(False)
+        self._pusherPWM.disable()
+        self._pusher1.write(False)
+        self._pusher2.write(False)
+        self._thread = None
+
     def pusher(self, state: bool, wait: bool = False):
-        pass
+        if self._pushed != state:
+            if self._thread is not None and self._thread.is_alive():
+                self._pushEvent.set()
+                self._thread.join(1.0)
+                self._pushEvent.clear()
+
+            if wait:
+                self.pushing(state)
+            else:
+                self._thread = threading.Thread(target=self.pushing, args=(state), daemon=True)
+                self._thread.start()
 
     def temps(self) -> (float, float, float):
         with open('/sys/class/thermal/thermal_zone0/temp', 'r') as temp:
@@ -115,7 +143,7 @@ class Peripheral:
         self._cpuGpio.close()
         
         self.pusher(False, wait=True)
-        self._pusherEnx.close()
+        self._pusherEn.close()
         self._pusher1.close()
         self._pusher2.close()
         self._pusherPWM.close()
