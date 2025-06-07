@@ -3,16 +3,16 @@ import signal
 import subprocess, os, re, sys, shutil
 from time import sleep
 
-_GPIO_FLASH  = 267
+_GPIO_FLASH  = 76
 _GPIO_COOLER = 259
-_GPIO_POWER  = 76
-_GPIO_CPU    = 268
-_GPIO_FAN    = 260
-_GPIO_PUSHER = 256     # low active
+_GPIO_POWER  = 260
+_GPIO_CPU    = 258
+_GPIO_FAN    = 272
+_GPIO_PUSHER = 229     # low active
 _GPIO_A1     = 233
 _GPIO_A2     = 265
 
-_PWM_PUSHER  = 3
+_PWM_PUSHER  = 1
 
 _I2C_TEMP    = "/dev/i2c-0"
 _TEMP_ADDR   = 0x5A
@@ -72,19 +72,38 @@ class Peripheral:
 
         tObject = 0.0
         tAmbient = 0.0
-        raw = bytearray(3)
+        dummy = bytearray(3)
+        
+        msgs = [I2C.Message([_REG_TOBJ1]), I2C.Message(dummy, True)]
         try:
+<<<<<<< HEAD
             msg = self._tempI2C.transfer(_TEMP_ADDR, [I2C.Message([_REG_TOBJ1]), I2C.Message(raw, True)])
         except Exception as e:
             print(e, file=sys.stderr)
         data = raw[0] | (raw[1] >> 8)
+=======
+            msg = self._tempI2C.transfer(_TEMP_ADDR, msgs)
+        except Exception as e:
+            print(e, file=sys.stderr)
+        resp = msgs[1].data
+        data = resp[0] | (resp[1] << 8)
+>>>>>>> 2c10de1 (MLX)
         tObject = float(data) * 0.02 - 273.15
 
+        msgs = [I2C.Message([_REG_TA]), I2C.Message(dummy, True)]
         try:
+<<<<<<< HEAD
             msg = self._tempI2C.transfer(_TEMP_ADDR, [I2C.Message([_REG_TA]), I2C.Message(raw, True)])
         except Exception as e:
             print(e, file=sys.stderr)
         data = raw[0] | (raw[1] >> 8)
+=======
+            msg = self._tempI2C.transfer(_TEMP_ADDR, msgs)
+        except Exception as e:
+            print(e, file=sys.stderr)
+        resp = msgs[1].data
+        data = resp[0] | (resp[1] << 8)
+>>>>>>> 2c10de1 (MLX)
         tAmbient = float(data) * 0.02 - 273.15
         
         self._tAmbient = tAmbient
