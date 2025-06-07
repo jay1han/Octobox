@@ -10,6 +10,8 @@ from octo_disp import Display
 from octo_print import Octoprint
 from octo_socket import Socket
 
+tempCold = 35.0
+
 class State(Enum):
     Off      = 0
     On       = 1
@@ -73,8 +75,8 @@ class Octobox:
     def loop(self):
         octo_state = self.o.getState()
         event = self.s.read()
-        tempExt = self.o.getTemp()
-        tempCpu, tempBed, tempAmb = self.p.temps()
+        tempExt, tempBed = self.o.getTemp()
+        tempCpu, tempOut, tempAmb = self.p.temps()
 
         if event != '' or self.octo_state != octo_state:
             print(f'State {self.state}: State "{octo_state}", Event "{event}"', file=sys.stderr)
@@ -143,16 +145,17 @@ class Octobox:
                 
             if self.state == State.Cooling:
                 print('Print ended', file=sys.stderr)
-                self.d.end()
+                self.o.disconnect()
                 self.p.pusher(True)
                 self.p.cooler(True)
+                self.d.end()
+                self.p.power(False)
 
         elif self.state == State.Cooling:
-            if octo_state.startswith('Error') \
-              or octo_state.startswith('Offline'):
+            if octo_state.startswith('Error'):
                 print('Error', file=sys.stderr)
                 self.state = State.Off
-            elif tempBed < 35.0 or tempBed < (tempAmb + 3.0):
+            elif tempOut < tempCold or tempOut < (tempAmb + 3.0):
                 print('Cold', file=sys.stderr)
                 self.state = State.Off
             elif event == 'power':
@@ -165,10 +168,8 @@ class Octobox:
                 self.o.disconnect()
                 self.powerOff()
                 
-        tempCold = 0.0
-        if self.state == State.Cooling:
-            tempCold = 35.0
-        self.d.setTemps((tempAmb, tempExt, tempBed, tempCpu, tempCold))
+        self.d.setTemps(tempAmb, tempExt, tempBed, tempOut, tempCpu,
+                        tempCold if self.state == State.Cooling else 0.0)
         
         if self.state == State.Off:
             self.d.setState('Printer Off')

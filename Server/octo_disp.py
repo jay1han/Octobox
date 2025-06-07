@@ -35,16 +35,17 @@ class Display:
     def setState(self, statusText):
         replaceText('/var/www/html/state', statusText)
 
-    def setTemps(self, temps):
-        tempAmb, tempExt, tempBed, tempCpu, tempCold = temps
+    def setTemps(self, tempAmb, tempExt, tempBed, tempOut, tempCpu, tempCold):
         temps = '<tr>'
         
         if tempExt != 0.0:
             temps += f'<td>Extruder : {tempExt:.1f}&deg;</td>'
         if tempBed != 0.0:
-            temps += f'<td>Bed : {tempBed:.1f}&deg;'
+            temps += f'<td>Bed : {tempBed:.1f}&deg;</td>'
+        elif tempOut != 0.0:
+            temps += f'<td>Out : {tempOut:.1f}&deg;'
             if tempCold != 0.0:
-                temps += f'({tempCold:.1f})'
+                temps += f' ({tempCold:.1f})'
             temps += '</td>'
         temps += f'<td>CPU : {tempCpu:.1f}&deg;</td>'
         if tempAmb != 0.0:
@@ -118,7 +119,7 @@ class Display:
         replaceText('/var/www/html/query', queryInfo)
 
     def clearInfo(self):
-        self.setTemps([0.0, 0.0, 0.0, 0.0, 0.0])
+        self.setTemps(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         self.setJobInfo(JobInfo())
         self.started = None
         self.ended = None

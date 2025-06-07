@@ -76,41 +76,27 @@ class Peripheral:
         
         msgs = [I2C.Message([_REG_TOBJ1]), I2C.Message(dummy, True)]
         try:
-<<<<<<< HEAD
-            msg = self._tempI2C.transfer(_TEMP_ADDR, [I2C.Message([_REG_TOBJ1]), I2C.Message(raw, True)])
-        except Exception as e:
-            print(e, file=sys.stderr)
-        data = raw[0] | (raw[1] >> 8)
-=======
             msg = self._tempI2C.transfer(_TEMP_ADDR, msgs)
         except Exception as e:
             print(e, file=sys.stderr)
         resp = msgs[1].data
         data = resp[0] | (resp[1] << 8)
->>>>>>> 2c10de1 (MLX)
         tObject = float(data) * 0.02 - 273.15
 
         msgs = [I2C.Message([_REG_TA]), I2C.Message(dummy, True)]
         try:
-<<<<<<< HEAD
-            msg = self._tempI2C.transfer(_TEMP_ADDR, [I2C.Message([_REG_TA]), I2C.Message(raw, True)])
-        except Exception as e:
-            print(e, file=sys.stderr)
-        data = raw[0] | (raw[1] >> 8)
-=======
             msg = self._tempI2C.transfer(_TEMP_ADDR, msgs)
         except Exception as e:
             print(e, file=sys.stderr)
         resp = msgs[1].data
         data = resp[0] | (resp[1] << 8)
->>>>>>> 2c10de1 (MLX)
         tAmbient = float(data) * 0.02 - 273.15
         
         self._tAmbient = tAmbient
         
-        if tCpu > 55.0 or (tAmbient > 0.0 and tCpu > tAmbient + 20.0):
+        if tCpu > 55.0 or (tAmbient > 35.0 and tCpu > tAmbient + 20.0):
             self._cpuGpio.write(True)
-        elif tCpu < 40.0 or (tAmbient > 0.0 and tCpu < tAmbient + 10.0):
+        elif tCpu < 35.0 or (tAmbient > 25.0 and tCpu < tAmbient + 10.0):
             self._cpuGpio.write(False)
             
         return tCpu, tObject, tAmbient

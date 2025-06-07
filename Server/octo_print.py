@@ -85,13 +85,17 @@ class Octoprint:
     def getTemp(self):
         printer = self.query('printer')
         if printer is None:
-            return 0.0
+            return 0.0, 0.0
         else:
-            tempExt = 0
+            tempExt = 0.0
             if printer['temperature'].get('tool0') is not None \
               and printer['temperature']['tool0'].get('actual') is not None:
                 tempExt = float(printer['temperature']['tool0']['actual'])
-            return tempExt
+            tempBed = 0.0
+            if printer['temperature'].get('bed') is not None \
+              and printer['temperature']['bed'].get('actual') is not None:
+                tempBed = float(printer['temperature']['bed']['actual'])
+            return tempExt, tempBed
 
     def getJobInfo(self):
         job = self.query('job')
