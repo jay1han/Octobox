@@ -66,7 +66,8 @@ class Peripheral:
         self._coolerGpio.write(state)
 
     def pushing(self, state: bool):
-        timeout = datetime.now() + timedelta(seconds = 15)
+        print(f'Pusher({state}) started', file=sys.stderr)
+        timeout = datetime.now() + timedelta(seconds = 30)
         self._pushed = state
         self._pusherPWM.enable()
         self._pusherEn.write(False)
@@ -80,6 +81,7 @@ class Peripheral:
         self._pusher1.write(False)
         self._pusher2.write(False)
         self._thread = None
+        print(f'Pusher({state}) done', file=sys.stderr)
 
     def pusher(self, state: bool, wait: bool = False):
         if self._pushed != state:
@@ -91,7 +93,8 @@ class Peripheral:
             if wait:
                 self.pushing(state)
             else:
-                self._thread = threading.Thread(target=self.pushing, args=(state), daemon=True)
+                print('Push async', file=sys.stderr)
+                self._thread = threading.Thread(target=self.pushing, args=[state], daemon=True)
                 self._thread.start()
 
     def temps(self) -> (float, float, float):
