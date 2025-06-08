@@ -20,6 +20,7 @@ _REG_TOBJ1   = 0x07
 _REG_TA      = 0x06
 
 RESOLUTION   = '1280x800'
+WWW          = '/dev/www/html'
     
 class Peripheral:
     def __init__(self):
@@ -167,7 +168,9 @@ class Camera:
         if ps != '':
             print(f'Kill streamer PID={ps}', file=sys.stderr)
             os.kill(int(ps), signal.SIGTERM)
-        self._Popen = None
+        self._webcam = None
+        self._dumper = None
+        self._thread = None
         list_devices = subprocess.run(['/usr/bin/v4l2-ctl', '--list-devices'],
                                       capture_output=True, text=True)\
                                  .stdout.splitlines()
@@ -183,39 +186,59 @@ class Camera:
             self._device = list_devices[usb_device].strip()
             print(f'Camera found on {self._device}', file=sys.stderr)
             self.capture()
+            self._thread = threading.Thread(target = self.imager, daemon = True)
+            self._thread.start()
         else:
             print('No camera', file=sys.stderr)
             shutil.copyfile('/usr/share/octobox/nocamera.jpg', '/var/www/html/image.jpg')
+
+    def imager(self):
+        print('Imager thread started', file=sys.stderr)
+        while True:
+            with os.scandir(WWW) as files:
+                dumps = [dump.name[4:-4] for dump in files if dump.name.startswith('dump')]
+                seq = sorted(list(map(int, dumps)))
+                os.rename(f'{WWW}/dump{seq[-1]}.jpg', f'{WWW}/image.jpg')
+                del seq[-1]
+                for image in seq:
+                    os.remove(f'{WWW}/dump{image}.jpg')
+            sleep(1)
         
     def start(self):
         if self._device is not None:
             self._peripheral.flash(True)
-            self._Popen = subprocess.Popen(
+            self._webcam = subprocess.Popen(
                 [
-                 '/usr/share/octobox/ustreamer',
-                 '-d',  self._device,
-                 '-r', RESOLUTION,
-                 '-m', 'MJPEG',
-                 '--device-timeout', '10',
-                 '--host=0.0.0.0',
-                 '-l'
+                    '/usr/share/octobox/ustreamer',
+                    '-d',  self._device,
+                    '-r', RESOLUTION,
+                    '-m', 'MJPEG',
+                    '--device-timeout', '10',
+                    '--host=0.0.0.0',
+                    '-l',
+                    '--sink=octobox::jpeg'
                  ]
             )
-            print(f'Started webcam process {self._Popen.pid}', file=sys.stderr)
+            print(f'Started webcam process {self._webcam.pid}', file=sys.stderr)
+            self._dumper = subprocess.Popen(
+                '/usr/share/octobox/ustreamer-dump --sink=octobox::jpeg -o - | ffmpeg -y -i pipe: -r 1 /var/www/html/dump%d.jpg',
+                shell=True
+            )
+            print(f'Started dumper process {self._dumper.pid}', file=sys.stderr)
 
     def stop(self):
-        if self._Popen is not None:
-            print('Stop streamer', file=sys.stderr)
-            self._Popen.terminate()
-            self._Popen.wait()
+        print('Stop streamer', file=sys.stderr)
+        if self._dumper is not None:
+            self._dumper.terminate()
+            self._dumper.wait()
+        if self._webcam is not None:
+            self._webcam.terminate()
+            self._webcam.wait()
         self.capture()
 
     def refresh(self):
-        if self._Popen is not None:
-            print('Stop streamer', file=sys.stderr)
-            self._Popen.terminate()
-            self._Popen.wait()
-            sleep(1)
+        self.stop()
+        sleep(1)
         self.start()
 
     def capture(self):

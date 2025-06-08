@@ -8,6 +8,7 @@ chmod -Rv g+r /home/octoprint/.octoprint/uploads
 mkdir -v /usr/share/octobox
 cp -pv octo*.py /usr/share/octobox/
 cp -pv ustreamer/ustreamer.bin /usr/share/octobox/ustreamer
+cp -pv ustreamer/ustreamer-dump.bin /usr/share/octobox/ustreamer-dump
 touch /usr/share/octobox/socket
 
 cp -v files/index.html /var/www/html
