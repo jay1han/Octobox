@@ -20,7 +20,7 @@ _REG_TOBJ1   = 0x07
 _REG_TA      = 0x06
 
 RESOLUTION   = '1280x800'
-WWW          = '/dev/www/html'
+WWW          = '/var/www/html'
     
 class Peripheral:
     def __init__(self):
@@ -198,10 +198,11 @@ class Camera:
             with os.scandir(WWW) as files:
                 dumps = [dump.name[4:-4] for dump in files if dump.name.startswith('dump')]
                 seq = sorted(list(map(int, dumps)))
-                os.rename(f'{WWW}/dump{seq[-1]}.jpg', f'{WWW}/image.jpg')
-                del seq[-1]
-                for image in seq:
-                    os.remove(f'{WWW}/dump{image}.jpg')
+                if len(seq) > 0:
+                    os.rename(f'{WWW}/dump{seq[-1]}.jpg', f'{WWW}/image.jpg')
+                    del seq[-1]
+                    for image in seq:
+                        os.remove(f'{WWW}/dump{image}.jpg')
             sleep(1)
         
     def start(self):
