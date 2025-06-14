@@ -21,7 +21,7 @@ class Display:
         self._filename = ''
         self._completion = ''
         self._remaining = ''
-        self._bedtemp = ''
+        self._printtemp = ''
         
         self.jobInfo = JobInfo()
         self.started = None
@@ -35,7 +35,7 @@ class Display:
             print(f'filename={self._filename}', file=status)
             print(f'completion={self._completion}', file=status)
             print(f'remaining={self._remaining}', file=status)
-            print(f'bedtemp={self._bedtemp}', file=status)
+            print(f'printtemp={self._printtemp}', file=status)
         os.rename('/var/www/html/status.1', '/var/www/html/status')
 
     def setupIP(self):
@@ -58,10 +58,10 @@ class Display:
         if tempExt != 0.0:
             temps += f'<td>Extruder : {tempExt:.1f}&deg;</td>'
         if tempBed != 0.0:
-            self._bedtemp = f'{tempBed:.1f}'
+            self._printtemp = f'{tempBed:.1f}'
             temps += f'<td>Bed : {tempBed:.1f}&deg;</td>'
         elif tempOut != 0.0:
-            self._bedtemp = f'{tempOut:.1f}'
+            self._printtemp = f'{tempOut:.1f}'
             temps += f'<td>Out : {tempOut:.1f}&deg;'
             if tempCold != 0.0:
                 temps += f' ({tempCold:.1f})'
