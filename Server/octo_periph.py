@@ -35,6 +35,7 @@ class Peripheral:
         
         self._cpuGpio = GPIO("/dev/gpiochip0", _GPIO_CPU, "out")
         self._cpuGpio.write(False)
+        self._cpuTimeout = datetime.now()
         
         self._pusherEn = GPIO("/dev/gpiochip0", _GPIO_PUSHER, "out")
         self._pusherEn.write(False)
@@ -65,6 +66,9 @@ class Peripheral:
 
     def cooler(self, state: bool):
         self._coolerGpio.write(state)
+
+    def cpu(self, state: bool):
+        self._cpuGpio.write(state)
 
     def pushing(self, state: bool):
         print(f'Pusher({state}) started', file=sys.stderr)
@@ -125,12 +129,12 @@ class Peripheral:
         tAmbient = float(data) * 0.02 - 273.15
         
         self._tAmbient = tAmbient
-        
-        if tCpu > 55.0 or (tAmbient > 35.0 and tCpu > tAmbient + 20.0):
-            self._cpuGpio.write(True)
-        elif tCpu < 35.0 or (tAmbient > 25.0 and tCpu < tAmbient + 10.0):
+
+        if tCpu > 60.0 and datetime.now() > self._cpuTimeout:
+            self._cpuTimeout = datetime.now() + timedelta(seconds=60)
             self._cpuGpio.write(False)
-            
+            self._cpuGpio.write(True)
+        
         return tCpu, tObject, tAmbient
 
     def stop(self):
