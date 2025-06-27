@@ -130,9 +130,10 @@ class Peripheral:
         
         self._tAmbient = tAmbient
 
-        if tCpu > 60.0 and datetime.now() > self._cpuTimeout:
+        if self._cpuGpio.read() and tCpu > 60.0 and datetime.now() > self._cpuTimeout:
             self._cpuTimeout = datetime.now() + timedelta(seconds=60)
             self._cpuGpio.write(False)
+            sleep(1)
             self._cpuGpio.write(True)
         
         return tCpu, tObject, tAmbient
