@@ -58,12 +58,14 @@ class Octobox:
         self.p.cooler(False)
         self.p.pusher(False)
         self.p.power(False)
+        self.p.cpu(False)
 
     def powerOn(self):
         print('Power On', file=sys.stderr)
         self.d.clearInfo()
         self.p.power(True)
         self.p.fan(True)
+        self.p.cpu(True)
 
     def reboot(self):
         print('Reboot', file=sys.stderr)
@@ -154,8 +156,7 @@ class Octobox:
         elif self.state == State.Cooling:
             if octo_state.startswith('Error'):
                 print('Error', file=sys.stderr)
-                self.state = State.Off
-            elif tempOut < tempCold or tempOut < (tempAmb + 3.0):
+            if tempOut < tempCold or tempOut < (tempAmb + 3.0):
                 print('Cold', file=sys.stderr)
                 self.state = State.Off
             elif event == 'power':
