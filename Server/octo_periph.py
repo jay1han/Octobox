@@ -34,8 +34,7 @@ class Peripheral:
         self._powerGpio.write(False)
         
         self._cpuGpio = GPIO("/dev/gpiochip0", _GPIO_CPU, "out")
-        self._cpuGpio.write(False)
-        self._cpuTimeout = datetime.now()
+        self._cpuGpio.write(True)
         
         self._pusherEn = GPIO("/dev/gpiochip0", _GPIO_PUSHER, "out")
         self._pusherEn.write(False)
@@ -129,12 +128,6 @@ class Peripheral:
         tAmbient = float(data) * 0.02 - 273.15
         
         self._tAmbient = tAmbient
-
-        if self._cpuGpio.read() and tCpu > 60.0 and datetime.now() > self._cpuTimeout:
-            self._cpuTimeout = datetime.now() + timedelta(seconds=60)
-            self._cpuGpio.write(False)
-            sleep(1)
-            self._cpuGpio.write(True)
         
         return tCpu, tObject, tAmbient
 
