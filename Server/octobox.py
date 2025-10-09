@@ -58,14 +58,13 @@ class Octobox:
         self.p.cooler(False)
         self.p.pusher(False)
         self.p.power(False)
+        self.p.cpu(False)
 
     def powerOn(self):
         print('Power On', file=sys.stderr)
         self.d.clearInfo()
         self.p.power(True)
-        sleep(0.1)
         self.p.fan(True)
-        sleep(0.1)
         self.p.cpu(True)
 
     def reboot(self):

@@ -32,9 +32,8 @@ class Peripheral:
         self._fanGpio.write(False)
         self._powerGpio = GPIO("/dev/gpiochip0", _GPIO_POWER, "out")
         self._powerGpio.write(False)
-        
         self._cpuGpio = GPIO("/dev/gpiochip0", _GPIO_CPU, "out")
-        self._cpuGpio.write(True)
+        self._cpuGpio.write(False)
         
         self._pusherEn = GPIO("/dev/gpiochip0", _GPIO_PUSHER, "out")
         self._pusherEn.write(False)
@@ -140,7 +139,6 @@ class Peripheral:
         self._fanGpio.close()
         self._powerGpio.write(False)
         self._powerGpio.close()
-        
         self._cpuGpio.write(False)
         self._cpuGpio.close()
         
