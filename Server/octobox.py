@@ -147,11 +147,9 @@ class Octobox:
                 
             if self.state == State.Cooling:
                 print('Print ended', file=sys.stderr)
-                self.o.disconnect()
                 self.d.end()
                 self.p.cooler(True)
                 self.p.pusher(True)
-                self.p.power(False)
 
         elif self.state == State.Cooling:
             if octo_state.startswith('Error'):

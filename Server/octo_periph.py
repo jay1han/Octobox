@@ -199,7 +199,7 @@ class Camera:
                     del seq[-1]
                     for image in seq:
                         os.remove(f'{WWW}/dump{image}.jpg')
-            sleep(1)
+            sleep(10)
         
     def start(self):
         if self._device is not None:
@@ -210,6 +210,8 @@ class Camera:
                     '-d',  self._device,
                     '-r', RESOLUTION,
                     '-m', 'MJPEG',
+                    '--buffers', '2',
+                    '--workers', '2', 
                     '--device-timeout', '10',
                     '--host=0.0.0.0',
                     '-l',
@@ -218,7 +220,7 @@ class Camera:
             )
             print(f'Started webcam process {self._webcam.pid}', file=sys.stderr)
             self._dumper = subprocess.Popen(
-                '/usr/share/octobox/ustreamer-dump --sink=octobox::jpeg -o - | ffmpeg -y -i pipe: -r 1 /var/www/html/dump%d.jpg',
+                '/usr/share/octobox/ustreamer-dump --sink=octobox::jpeg --interval 10 -o - | ffmpeg -y -i pipe: -r 1 /var/www/html/dump%d.jpg',
                 shell=True
             )
             print(f'Started dumper process {self._dumper.pid}', file=sys.stderr)
