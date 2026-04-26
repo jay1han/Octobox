@@ -32,6 +32,16 @@ def request(command, data):
     except OSError:
         pass
 
+def parseTime(text: str):
+    seconds = 0
+    hours = re.search('([0-9]+) hour', text)
+    if hours is not None:
+        seconds += int(hours.group(1)) * 3600
+    minutes = re.search('([0-9]+) minute', text)
+    if minutes is not None:
+        seconds += int(minutes.group(1)) * 60
+    return seconds
+
 class Octoprint:
     def __init__(self):
         global APIKEY
@@ -113,10 +123,19 @@ class Octoprint:
                     for line in gcode:
                         lines += 1
                         if lines > 20: break
+
+                        # Cura style
                         match = re.match(';TIME:([0-9]+)', line)
                         if match is not None:
                             fileTime = int(match.group(1))
                             break
+                        # Kingroon style
+                        else:
+                            match = re.match(';Print time: (.+)$', line)
+                            if match is not None:
+                                fileTime = parseTime(match.group(1))
+                                break
+                            
                 filename =  filename.removesuffix('.gcode')
 
             currentTime = job['progress']['printTime']
